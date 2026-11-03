@@ -6,7 +6,7 @@
 [![Docker pulls](https://img.shields.io/docker/pulls/dockerkeithics/bitswarm-server?label=docker%20pulls)](https://hub.docker.com/r/dockerkeithics/bitswarm-server)
 [![Platforms](https://img.shields.io/badge/platforms-amd64%20%7C%20arm64%20%7C%20arm%2Fv7%20%7C%20386-blue)](https://hub.docker.com/r/dockerkeithics/bitswarm-server/tags)
 
-A standalone BitTorrent client with a web interface. Bitswarm downloads and seeds by itself using a built-in engine ([anacrolix/torrent](https://github.com/anacrolix/torrent)), so you don't need qBittorrent, Transmission or any other client.
+A standalone BitTorrent client with a web interface. Bitswarm downloads and seeds by itself using a built-in engine, so you don't need qBittorrent, Transmission or any other client.
 
 On top of the usual torrent list it adds automation: scheduled searches of websites, regex rename presets, maintenance tasks, hooks that call an API or run a command, an execution log, API tokens and settings backup.
 
