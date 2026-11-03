@@ -13,7 +13,7 @@ All notable changes to Bitswarm are listed here, newest first. The format follow
 - Shareable URLs for the torrent list view, the settings section and the Execution log filters.
 
 ### Changed
-- Replaced `react-router` with TanStack Router (file-based routes, data loaders, preloading and code splitting).
+- Replaced `react-router` with TanStack Router ([#9](https://github.com/bitswarm-dev/bitswarm/pull/9)): one file per route, a data loader per route, preloading on hover, a chunk per page, typed links, and shared pending, error and not-found screens. The torrent list view (filters, search, sort, selection, inspector tab), the settings section and the Execution log filters now live in the URL, so they can be bookmarked and shared. React Context holds only UI state.
 - The README leads with automation and hooks.
 - Stored header keys such as `Authorization` are masked after saving.
 - Base images: golang 1.27, alpine 3.24, nginx 1.31, node 26. Build tools: Vite 6 and @vitejs/plugin-react 4.7.
@@ -29,6 +29,8 @@ All notable changes to Bitswarm are listed here, newest first. The format follow
 ### Fixed
 - Command hooks that time out on Linux now stop the whole process group.
 - The Execution log no longer re-renders in a loop.
+
+Pull requests: [#1](https://github.com/bitswarm-dev/bitswarm/pull/1), [#2](https://github.com/bitswarm-dev/bitswarm/pull/2), [#3](https://github.com/bitswarm-dev/bitswarm/pull/3), [#4](https://github.com/bitswarm-dev/bitswarm/pull/4), [#5](https://github.com/bitswarm-dev/bitswarm/pull/5), [#6](https://github.com/bitswarm-dev/bitswarm/pull/6), [#7](https://github.com/bitswarm-dev/bitswarm/pull/7), [#8](https://github.com/bitswarm-dev/bitswarm/pull/8), [#9](https://github.com/bitswarm-dev/bitswarm/pull/9), [#10](https://github.com/bitswarm-dev/bitswarm/pull/10), [#11](https://github.com/bitswarm-dev/bitswarm/pull/11), [#13](https://github.com/bitswarm-dev/bitswarm/pull/13).
 
 ## [0.9.1] - 2026-11-03
 
