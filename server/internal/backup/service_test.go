@@ -91,7 +91,7 @@ func (e *env) populate(t *testing.T) {
 	if _, err := e.hk.Create(ctx, hooks.Hook{Kind: "cmd", Name: "Cmd", Cmd: "echo {{torrent.name}}", Cwd: "/tmp", Timeout: 30, Stdin: true, Events: []string{"torrent.added"}, Retries: 0, Enabled: true}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := e.hk.Create(ctx, hooks.Hook{Kind: "curl", Name: "Curl", Cmd: "curl -sf -X POST https://example.org/h -d {{torrent.name}}", Timeout: 30, Events: []string{"torrent.completed"}, Enabled: true}); err != nil {
+	if _, err := e.hk.Create(ctx, hooks.Hook{Kind: "curl", Name: "Curl", Cmd: "curl -sf -X POST https://example.org/h -d name={{torrent.name}}", Timeout: 30, Events: []string{"torrent.completed"}, Enabled: true}); err != nil {
 		t.Fatal(err)
 	}
 	s := e.set.Get()
@@ -125,7 +125,7 @@ func TestExport_ShapeAndSecrets(t *testing.T) {
 			t.Errorf("export without secrets leaked %q", bad)
 		}
 	}
-	for _, want := range []string{`"swarm_backup": 1`, `"app_version": "` + Version + `"`, `"exported_at": "2026-11-02T10:00:00.000Z"`, `Authorization: <removed>`, `"renamePreset": "Tidy"`, `"rename_presets"`, `"command": "echo {{torrent.name}}"`, `"kind": "curl"`, `"command": "curl -sf -X POST https://example.org/h -d {{torrent.name}}"`} {
+	for _, want := range []string{`"swarm_backup": 1`, `"app_version": "` + Version + `"`, `"exported_at": "2026-11-02T10:00:00.000Z"`, `Authorization: <removed>`, `"renamePreset": "Tidy"`, `"rename_presets"`, `"command": "echo {{torrent.name}}"`, `"kind": "curl"`, `"command": "curl -sf -X POST https://example.org/h -d name={{torrent.name}}"`} {
 		if !strings.Contains(plain.JSON, want) {
 			t.Errorf("export lacks %s", want)
 		}
