@@ -1,12 +1,12 @@
 import { useState, type FormEvent, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNav } from "@/app/nav";
 import { useUi } from "@/app/ui";
 import { readFlag, writeFlag } from "@/app/storage";
 import { Modal } from "@/components/Modal/Modal";
 
 export function HooksGate({ children }: { children: ReactNode }) {
   const ui = useUi();
-  const nav = useNavigate();
+  const nav = useNav();
   const [ok, setOk] = useState(false);
   const [never, setNever] = useState(false);
   const acked = ui.hooksAck || readFlag("swarm-hooks-ack");

@@ -1,5 +1,5 @@
 import { useSettings } from "@/features/settings/queries";
-import { useNavigate } from "react-router-dom";
+import { useNav } from "@/app/nav";
 import { useUpdates } from "@/features/updates/queries";
 import { useSchedules } from "@/features/schedules/queries";
 import { useStats } from "@/features/torrents/queries";
@@ -10,7 +10,7 @@ export function StatusBar() {
   const { data: set } = useSettings();
   const { data: rules } = useSchedules();
   const { data: upd } = useUpdates();
-  const nav = useNavigate();
+  const nav = useNav();
   const next = rules.filter((r) => r.enabled).sort((a, b) => a.nextRun - b.nextRun)[0];
 
   return (

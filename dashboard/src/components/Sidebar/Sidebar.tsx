@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "@tanstack/react-router";
+import { useNav } from "@/app/nav";
 import { useUi, type GroupKey } from "@/app/ui";
 import { Svg } from "@/components/Icons/Svg";
 import { LineChart } from "@/components/Charts/LineChart";
@@ -65,7 +66,7 @@ type Page = keyof typeof NAV_ICON;
 export function Sidebar() {
   const ui = useUi();
   const [managing, setManaging] = useState(false);
-  const nav = useNavigate();
+  const nav = useNav();
   const { pathname } = useLocation();
   const { data: torrents } = useTorrents();
   const { data: catalog } = useCatalog();
