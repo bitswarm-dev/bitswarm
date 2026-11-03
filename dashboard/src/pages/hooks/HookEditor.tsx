@@ -171,7 +171,9 @@ export function HookEditor({ hook, onClose, onSaved }: Props) {
               <label className="field">
                 <span>Headers</span>
                 <textarea ref={refs.headers} rows={3} value={form.headers} onFocus={() => (last.current = "headers")} onChange={(e) => set("headers", e.target.value)} spellCheck={false} placeholder="Content-Type: application/json" />
-                <small>One per line, written as Name: value.</small>
+                <small>
+                  One per line, written as Name: value. Keys in headers such as <code>Authorization</code> and <code>X-Api-Key</code> are hidden after you save, and <code>********</code> means the saved key is kept. To keep a key out of Bitswarm altogether, write <code>{"{{secret.NAME}}"}</code> and set <code>SWARM_SECRET_NAME</code> on the server.
+                </small>
               </label>
               <label className="field">
                 <span>Body</span>
@@ -216,6 +218,7 @@ export function HookEditor({ hook, onClose, onSaved }: Props) {
                 A sample <code>{preview.event}</code> event.
                 {preview.unknown.length > 0 && <span className="bad"> Unknown placeholder{preview.unknown.length > 1 ? "s" : ""}: {preview.unknown.map((k) => `{{${k}}}`).join(", ")}.</span>}
                 {preview.empty.length > 0 && <> {preview.empty.map((k) => `{{${k}}}`).join(", ")} {preview.empty.length > 1 ? "are" : "is"} empty for this event.</>}
+                {(preview.missingSecrets?.length ?? 0) > 0 && <span className="bad"> Not set on the server: {preview.missingSecrets.map((k) => `SWARM_SECRET_${k}`).join(", ")}. The hook can’t send until you set {preview.missingSecrets.length > 1 ? "them" : "it"} and restart Bitswarm.</span>}
               </>
             )}
           </p>

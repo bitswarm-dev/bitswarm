@@ -16,8 +16,14 @@ var migrationFiles embed.FS
 
 func Open(path string) (*sql.DB, error) {
 	if path != ":memory:" {
-		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 			return nil, fmt.Errorf("db: create dir: %w", err)
+		}
+		if f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0o600); err == nil {
+			f.Close()
+		}
+		for _, p := range []string{path, path + "-wal", path + "-shm"} {
+			_ = os.Chmod(p, 0o600)
 		}
 	}
 

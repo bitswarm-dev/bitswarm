@@ -153,6 +153,43 @@ func TestExport_ShapeAndSecrets(t *testing.T) {
 	}
 }
 
+func TestExport_KeepsSecretReferencesAndBlanksRealKeys(t *testing.T) {
+	ctx := context.Background()
+	tests := []struct {
+		name    string
+		secrets bool
+		want    []string
+		absent  []string
+	}{
+		{"without secrets", false, []string{"Authorization: Bearer {{secret.MAIL_KEY}}", "X-Api-Key: <removed>", "Content-Type: application/json"}, []string{"typed-in-the-editor"}},
+		{"with secrets", true, []string{"Authorization: Bearer {{secret.MAIL_KEY}}", "X-Api-Key: typed-in-the-editor"}, nil},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			e := newEnv(t)
+			if _, err := e.hk.Create(ctx, hooks.Hook{Kind: "api", Name: "Mail", Method: "POST", URL: "https://example.org/h",
+				Headers: "Content-Type: application/json\nAuthorization: Bearer {{secret.MAIL_KEY}}\nX-Api-Key: typed-in-the-editor",
+				Body:    "{{payload}}", Events: []string{"torrent.completed"}, Retries: 1, Timeout: 30, Enabled: true}); err != nil {
+				t.Fatal(err)
+			}
+			out, err := e.svc.Export(ctx, ExportReq{Parts: []string{"hooks"}, Secrets: tc.secrets})
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, w := range tc.want {
+				if !strings.Contains(out.JSON, w) {
+					t.Errorf("export lacks %q", w)
+				}
+			}
+			for _, a := range tc.absent {
+				if strings.Contains(out.JSON, a) {
+					t.Errorf("export has %q", a)
+				}
+			}
+		})
+	}
+}
+
 func TestRoundTrip(t *testing.T) {
 	src := newEnv(t)
 	src.populate(t)

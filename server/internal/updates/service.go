@@ -2,6 +2,7 @@ package updates
 
 import (
 	"bitswarm/server/internal/buildinfo"
+	"bitswarm/server/internal/redact"
 	"context"
 	"encoding/json"
 	"errors"
@@ -70,12 +71,12 @@ func URLFeed(raw string) Feed {
 	return func(ctx context.Context) ([]Release, error) {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, raw, nil)
 		if err != nil {
-			return nil, err
+			return nil, errors.New(redact.Err(err))
 		}
 		req.Header.Set("User-Agent", "Bitswarm/"+buildinfo.Version)
 		resp, err := client.Do(req)
 		if err != nil {
-			return nil, fmt.Errorf("couldn’t reach the release feed: %v", err)
+			return nil, fmt.Errorf("couldn’t reach the release feed: %s", redact.Err(err))
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode >= 400 {
