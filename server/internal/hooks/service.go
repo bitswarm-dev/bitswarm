@@ -419,6 +419,7 @@ func (s *Service) runCommand(ctx context.Context, d *Delivery) {
 	cctx, cancel := context.WithTimeout(ctx, time.Duration(d.Timeout)*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(cctx, "/bin/sh", "-c", d.Command)
+	killTree(cmd)
 	if d.Cwd != "" {
 		cmd.Dir = expandHome(d.Cwd)
 	}
