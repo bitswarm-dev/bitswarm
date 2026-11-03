@@ -73,7 +73,7 @@ func URLFeed(raw string) Feed {
 		if err != nil {
 			return nil, errors.New(redact.Err(err))
 		}
-		req.Header.Set("User-Agent", "Bitswarm/"+buildinfo.Version)
+		req.Header.Set("User-Agent", "BitSwarm/"+buildinfo.Version)
 		resp, err := client.Do(req)
 		if err != nil {
 			return nil, fmt.Errorf("couldn’t reach the release feed: %s", redact.Err(err))

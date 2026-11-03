@@ -98,9 +98,9 @@ func New(cfg Config) (*Engine, error) {
 	})
 	c.DownloadRateLimiter = e.dlLimit
 	c.UploadRateLimiter = e.ulLimit
-	c.ExtendedHandshakeClientVersion = "Bitswarm " + cfg.Version
+	c.ExtendedHandshakeClientVersion = "BitSwarm " + cfg.Version
 	c.Bep20 = peerPrefix(cfg.Version)
-	c.HTTPUserAgent = "Bitswarm/" + cfg.Version
+	c.HTTPUserAgent = "BitSwarm/" + cfg.Version
 	switch cfg.Encryption {
 	case "require":
 		c.HeaderObfuscationPolicy = torrent.HeaderObfuscationPolicy{Preferred: true, RequirePreferred: true}

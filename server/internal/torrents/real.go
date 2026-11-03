@@ -394,7 +394,7 @@ func fetchTorrent(ctx context.Context, raw string) ([]byte, error) {
 	if err != nil {
 		return nil, Invalid("The link " + raw + " isn’t valid.")
 	}
-	req.Header.Set("User-Agent", "Bitswarm")
+	req.Header.Set("User-Agent", "BitSwarm")
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, Invalid(fmt.Sprintf("Couldn’t download the .torrent file from %s: %v", u.Host, err))

@@ -75,7 +75,7 @@ func HTTPFetcher() Fetcher {
 		if err != nil {
 			return "", errors.New(redact.Err(err))
 		}
-		req.Header.Set("User-Agent", "Bitswarm/"+buildinfo.Version)
+		req.Header.Set("User-Agent", "BitSwarm/"+buildinfo.Version)
 		resp, err := client.Do(req)
 		if err != nil {
 			return "", fmt.Errorf("couldn’t reach %s: %s", u.Host, redact.Err(err))
