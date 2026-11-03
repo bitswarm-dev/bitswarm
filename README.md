@@ -31,7 +31,7 @@ Captured in demo mode, which uses a simulated engine with sample torrents.
 |---|---|
 | <img src="docs/screenshots/desktop-dark.png" alt="Bitswarm torrent list in the dark theme"> | <img src="docs/screenshots/desktop-light.png" alt="Bitswarm torrent list in the light theme"> |
 
-<img src="docs/screenshots/phone-dark.png" alt="Bitswarm on a phone-width screen" width="260">
+<img src="docs/screenshots/scheduled-dark.png" alt="Bitswarm scheduled downloads page in the dark theme">
 
 ## Features
 
