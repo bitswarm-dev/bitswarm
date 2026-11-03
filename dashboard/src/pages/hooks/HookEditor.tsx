@@ -4,7 +4,7 @@ import { useCatalog } from "@/features/catalog/queries";
 import { useCreateHook, useParseCurl, useUpdateHook } from "@/features/hooks/mutations";
 import { useHookPreview, useHooksConfig } from "@/features/hooks/queries";
 import { pickKnown } from "@/utils/safe";
-import { BLANK_HOOK, EVENT_GROUPS, PLACEHOLDERS, type Hook, type HookView } from "@/features/hooks/types";
+import { BLANK_HOOK, CURL_TEMPLATE, EVENT_GROUPS, PLACEHOLDERS, type Hook, type HookView } from "@/features/hooks/types";
 
 type Form = Omit<Hook, "id" | "count" | "last" | "lastEvent">;
 type Field = "url" | "body" | "headers" | "cmd";
@@ -39,13 +39,14 @@ export function HookEditor({ hook, onClose, onSaved }: Props) {
   const hasSecret = hook?.hasSecret ?? false;
   const preview = useHookPreview({ ...debounced, secret: debounced.secret || (hasSecret && !debounced.clearSecret ? "•" : "") }).data;
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
-  const cmd = form.kind === "cmd";
+  const curl = form.kind === "curl";
+  const cmd = form.kind === "cmd" || curl;
 
   const setKind = (k: Form["kind"]) => {
-    last.current = k === "cmd" ? "cmd" : "body";
+    last.current = k === "api" ? "body" : "cmd";
     setCurlOpen(false);
     setImported(null);
-    set("kind", k);
+    setForm((f) => ({ ...f, kind: k, cmd: k === "curl" && !f.cmd.trim() ? CURL_TEMPLATE : f.cmd }));
   };
 
   const importCurl = () => {
@@ -87,7 +88,7 @@ export function HookEditor({ hook, onClose, onSaved }: Props) {
   };
 
   return (
-    <Modal title={hook ? "Edit hook" : "New hook"} subtitle="Call an API or run a command whenever something happens in Bitswarm." wide onClose={onClose}>
+    <Modal title={hook ? "Edit hook" : "New hook"} subtitle="Call an API, run a command or run curl whenever something happens in Bitswarm." wide onClose={onClose}>
       <form onSubmit={submit} noValidate>
         <fieldset className="step">
           <legend><span className="sn">1</span>What to do</legend>
@@ -97,7 +98,8 @@ export function HookEditor({ hook, onClose, onSaved }: Props) {
           </label>
           <div className="seg kindseg" role="group" aria-label="Hook type">
             <button type="button" aria-pressed={!cmd && !curlOpen} onClick={() => setKind("api")}>Call an API</button>
-            <button type="button" aria-pressed={cmd} onClick={() => setKind("cmd")}>Run a command</button>
+            <button type="button" aria-pressed={form.kind === "cmd"} onClick={() => setKind("cmd")}>Run a command</button>
+            <button type="button" aria-pressed={curl} onClick={() => setKind("curl")}>Run curl</button>
             <button type="button" aria-pressed={!cmd && curlOpen} onClick={() => { set("kind", "api"); setCurlOpen(true); }}>Paste curl</button>
           </div>
           {!cmd && curlOpen ? (
@@ -139,13 +141,13 @@ export function HookEditor({ hook, onClose, onSaved }: Props) {
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {!config.commandsEnabled && (
                 <p className="note" style={{ margin: 0 }}>
-                  <span>Command hooks are turned off on this server, so saved commands are recorded as “Not run”. Start the server with <code>SWARM_ALLOW_COMMANDS=1</code> to run them.</span>
+                  <span>Command and curl hooks are turned off on this server, so saved commands are recorded as “Not run”. Start the server with <code>SWARM_ALLOW_COMMANDS=1</code> to run them.</span>
                 </p>
               )}
               <label className="field">
-                <span>Command</span>
-                <textarea ref={refs.cmd} rows={2} value={form.cmd} onFocus={() => (last.current = "cmd")} onChange={(e) => set("cmd", e.target.value)} spellCheck={false} placeholder="/home/me/scripts/done.sh {{torrent.path}} {{torrent.name}}" />
-                <small>Runs on the machine where Bitswarm runs, with Bitswarm’s permissions. Placeholder values are quoted for the shell automatically, so don’t put quotes around them.</small>
+                <span>{curl ? "curl command" : "Command"}</span>
+                <textarea ref={refs.cmd} rows={curl ? 5 : 2} value={form.cmd} onFocus={() => (last.current = "cmd")} onChange={(e) => set("cmd", e.target.value)} spellCheck={false} placeholder={curl ? CURL_TEMPLATE : "/home/me/scripts/done.sh {{torrent.path}} {{torrent.name}}"} />
+                <small>{curl ? "Starts the curl program on the machine where Bitswarm runs, so curl must be installed there. " : ""}Runs on the machine where Bitswarm runs, with Bitswarm’s permissions. Placeholder values are quoted for the shell automatically, so don’t put quotes around them.</small>
               </label>
               <div className="row2">
                 <label className="field">

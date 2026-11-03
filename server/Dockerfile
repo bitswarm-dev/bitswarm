@@ -11,7 +11,7 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
     go build -trimpath -ldflags="-s -w -X bitswarm/server/internal/buildinfo.Version=${APP_VERSION}" -o /out/server ./cmd/server
 
 FROM alpine:3.21
-RUN apk add --no-cache ca-certificates tzdata \
+RUN apk add --no-cache ca-certificates tzdata curl \
     && adduser -D -u 10001 swarm \
     && mkdir -p /data /downloads \
     && chown swarm:swarm /data /downloads

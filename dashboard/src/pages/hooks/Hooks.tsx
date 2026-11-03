@@ -77,12 +77,12 @@ export function Hooks() {
                     <span />
                   </label>
                   <h3>{h.name}</h3>
-                  <span className="chip">{h.kind === "cmd" ? "Command" : h.method}</span>
+                  <span className="chip">{h.kind === "cmd" ? "Command" : h.kind === "curl" ? "curl" : h.method}</span>
                   {h.tag && <span className="tag">{h.tag}</span>}
-                  {h.kind !== "cmd" && h.hasSecret && <span className="chip">Signed</span>}
+                  {h.kind === "api" && h.hasSecret && <span className="chip">Signed</span>}
                 </div>
                 <dl className="rule-spec">
-                  <div><dt>{h.kind === "cmd" ? "Runs" : "URL"}</dt><dd className="num">{h.kind === "cmd" ? `$ ${h.cmd}` : h.url}</dd></div>
+                  <div><dt>{h.kind !== "api" ? "Runs" : "URL"}</dt><dd className="num">{h.kind !== "api" ? `$ ${h.cmd}` : h.url}</dd></div>
                   <div><dt>Events</dt><dd><EventChips h={h} /></dd></div>
                 </dl>
               </div>
@@ -154,7 +154,7 @@ export function Hooks() {
                   <time>{formatWhen(d.t)}</time>
                   <code className="evc">{d.event}</code>
                   <span className="dh">{d.hook}{d.test ? " · test" : ""}</span>
-                  <span className="du num">{d.kind === "cmd" ? `$ ${d.command}` : `${d.method} ${d.url}`}</span>
+                  <span className="du num">{d.kind !== "api" ? `$ ${d.command}` : `${d.method} ${d.url}`}</span>
                   <span className={`pill st-${STATUS[d.status][0]}`}>{STATUS[d.status][1]}</span>
                 </summary>
                 <pre className="req">
@@ -168,7 +168,7 @@ export function Hooks() {
                 </pre>
                 <div className="pv-foot">
                   <span className="sum" />
-                  <button className="btn" onClick={() => copy(d.copy, d.kind === "cmd" ? "Command" : "curl command")}>{d.kind === "cmd" ? "Copy command" : "Copy as curl"}</button>
+                  <button className="btn" onClick={() => copy(d.copy, d.kind !== "api" ? "Command" : "curl command")}>{d.kind !== "api" ? "Copy command" : "Copy as curl"}</button>
                 </div>
               </details>
             ))}

@@ -91,6 +91,9 @@ func (e *env) populate(t *testing.T) {
 	if _, err := e.hk.Create(ctx, hooks.Hook{Kind: "cmd", Name: "Cmd", Cmd: "echo {{torrent.name}}", Cwd: "/tmp", Timeout: 30, Stdin: true, Events: []string{"torrent.added"}, Retries: 0, Enabled: true}); err != nil {
 		t.Fatal(err)
 	}
+	if _, err := e.hk.Create(ctx, hooks.Hook{Kind: "curl", Name: "Curl", Cmd: "curl -sf -X POST https://example.org/h -d {{torrent.name}}", Timeout: 30, Events: []string{"torrent.completed"}, Enabled: true}); err != nil {
+		t.Fatal(err)
+	}
 	s := e.set.Get()
 	s.Port, s.ProxyPass, s.ProxyType, s.ProxyHost = 6000, "proxy-pw", "socks5", "p.example"
 	if _, errs := e.set.Save(ctx, s); len(errs) > 0 {
@@ -122,7 +125,7 @@ func TestExport_ShapeAndSecrets(t *testing.T) {
 			t.Errorf("export without secrets leaked %q", bad)
 		}
 	}
-	for _, want := range []string{`"swarm_backup": 1`, `"app_version": "` + Version + `"`, `"exported_at": "2026-11-02T10:00:00.000Z"`, `Authorization: <removed>`, `"renamePreset": "Tidy"`, `"rename_presets"`, `"command": "echo {{torrent.name}}"`} {
+	for _, want := range []string{`"swarm_backup": 1`, `"app_version": "` + Version + `"`, `"exported_at": "2026-11-02T10:00:00.000Z"`, `Authorization: <removed>`, `"renamePreset": "Tidy"`, `"rename_presets"`, `"command": "echo {{torrent.name}}"`, `"kind": "curl"`, `"command": "curl -sf -X POST https://example.org/h -d {{torrent.name}}"`} {
 		if !strings.Contains(plain.JSON, want) {
 			t.Errorf("export lacks %s", want)
 		}
@@ -148,7 +151,7 @@ func TestExport_ShapeAndSecrets(t *testing.T) {
 		t.Errorf("log = %v", e.log.lines)
 	}
 	counts := e.svc.Counts(ctx)
-	if counts["schedules"] != "1 schedule" || counts["hooks"] != "2 hooks" || counts["presets"] != "1 preset" || counts["maintenance"] != "6 tasks" || !strings.Contains(counts["tags"], "tag") {
+	if counts["schedules"] != "1 schedule" || counts["hooks"] != "3 hooks" || counts["presets"] != "1 preset" || counts["maintenance"] != "6 tasks" || !strings.Contains(counts["tags"], "tag") {
 		t.Errorf("counts = %v", counts)
 	}
 }
@@ -216,7 +219,7 @@ func TestRoundTrip(t *testing.T) {
 	if len(res.Skipped) != 0 {
 		t.Errorf("skipped = %+v", res.Skipped)
 	}
-	if !strings.Contains(res.Summary, "1 rename preset") || !strings.Contains(res.Summary, "2 hooks, turned off") {
+	if !strings.Contains(res.Summary, "1 rename preset") || !strings.Contains(res.Summary, "3 hooks, turned off") {
 		t.Errorf("summary = %q", res.Summary)
 	}
 
@@ -232,7 +235,7 @@ func TestRoundTrip(t *testing.T) {
 		t.Errorf("schedule did not relink to its preset by name: %+v / %+v", rules, presets)
 	}
 	hs, _ := dst.hk.Export(ctx)
-	if len(hs) != 2 || hs[0].Enabled || hs[1].Enabled || hs[0].Secret != "sign-me" {
+	if len(hs) != 3 || hs[0].Enabled || hs[1].Enabled || hs[2].Enabled || hs[2].Kind != "curl" || hs[0].Secret != "sign-me" {
 		t.Errorf("hooks = %+v", hs)
 	}
 	mt, _ := dst.maint.List(ctx)
@@ -244,7 +247,7 @@ func TestRoundTrip(t *testing.T) {
 	if p, _ := dst.ren.List(ctx); len(p) != 1 {
 		t.Errorf("merge duplicated presets: %d", len(p))
 	}
-	if h, _ := dst.hk.Export(ctx); len(h) != 2 {
+	if h, _ := dst.hk.Export(ctx); len(h) != 3 {
 		t.Errorf("merge duplicated hooks: %d", len(h))
 	}
 	if !strings.Contains(res2.Summary, "0 rename presets") {

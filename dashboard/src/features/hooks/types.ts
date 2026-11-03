@@ -1,6 +1,6 @@
 export interface Hook {
   id: number;
-  kind: "api" | "cmd";
+  kind: "api" | "cmd" | "curl";
   name: string;
   method: string;
   url: string;
@@ -32,7 +32,7 @@ export interface Delivery {
   hook: string;
   event: string;
   test: boolean;
-  kind: "api" | "cmd";
+  kind: "api" | "cmd" | "curl";
   method: string;
   url: string;
   command: string;
@@ -92,3 +92,7 @@ export const BLANK_HOOK: Omit<Hook, "id" | "count" | "last" | "lastEvent"> = {
   retries: 3,
   enabled: true,
 };
+
+export const CURL_TEMPLATE = `curl -sf -X POST https://example.org/hooks/bitswarm \\
+  -H 'Content-Type: application/json' \\
+  -d {{payload}}`;

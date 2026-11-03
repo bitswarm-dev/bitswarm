@@ -35,7 +35,7 @@ Every feature has a server API and a dashboard screen. Keep this table honest.
 | Rename presets | done (Go regex syntax, not JavaScript: no lookahead or backreferences). File targets may put `/` in the replacement to move files into a folder (created if missing; `..` dropped); torrent names still turn `/` into `-`. A name clash on disk is numbered like Finder ("(2)"), never overwritten (`Engine.SetNames` returns the final names). |
 | Scheduled downloads | done: timed runs fetch live URLs and were run end to end on the real Debian page; previews fetch the live search URL. A rule has a search URL with an optional `{query}` and search terms (one search each). Fetches are spaced by Settings → "Wait between searches" (default 5 s, `searchDelay`); the name is optional and defaults to the first term. There is no pasted sample: the editor preview fetches live. An empty "Save to" means the default folder from Settings. Rules apply tags and can pick or create a rename preset inline. |
 | Maintenance | done |
-| Hooks | done: API hooks are really sent; command hooks run only with `SWARM_ALLOW_COMMANDS=1` |
+| Hooks | done: API hooks are really sent; command and curl hooks run only with `SWARM_ALLOW_COMMANDS=1` |
 | API tokens | done: Bearer tokens with read, control and admin scopes, also under `/api/v1` |
 | Backup export and import | done |
 | Execution log, settings, about | done |
