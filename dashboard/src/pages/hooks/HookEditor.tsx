@@ -163,7 +163,7 @@ export function HookEditor({ hook, onClose, onSaved }: Props) {
               <label className="check"><input type="checkbox" checked={form.stdin} onChange={(e) => set("stdin", e.target.checked)} /> Send the event as JSON to the command’s standard input</label>
               <p className="hint" style={{ margin: 0 }}>
                 The command also gets these environment variables: <code>SWARM_EVENT</code>, <code>SWARM_TIME</code>, <code>SWARM_TORRENT_NAME</code>, <code>SWARM_TORRENT_HASH</code>, <code>SWARM_TORRENT_PATH</code>,{" "}
-                <code>SWARM_TORRENT_LABEL</code>, <code>SWARM_TORRENT_SIZE</code>, and <code>SWARM_SCHEDULE</code> or <code>SWARM_TASK</code> when they apply. Click a placeholder below to add it to the command.
+                <code>SWARM_TORRENT_SIZE</code>, and <code>SWARM_SCHEDULE</code> or <code>SWARM_TASK</code> when they apply. Click a placeholder below to add it to the command.
               </p>
             </div>
           ) : (
