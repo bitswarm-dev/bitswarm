@@ -29,6 +29,13 @@ func (h Hook) Shell() bool { return h.Kind == "cmd" || h.Kind == "curl" }
 
 func (d Delivery) Shell() bool { return d.Kind == "cmd" || d.Kind == "curl" }
 
+func curlSafe(s string) string {
+	if s != "" && strings.ContainsRune("-@<", rune(s[0])) {
+		return " " + s
+	}
+	return s
+}
+
 func Sq(s string) string { return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'" }
 
 func normalize(data map[string]any) map[string]any {
@@ -98,7 +105,7 @@ func Fill(tpl string, vars map[string]string, mode string) string {
 	return placeholderRe.ReplaceAllStringFunc(tpl, func(m string) string {
 		k := placeholderRe.FindStringSubmatch(m)[1]
 		if name, ok := strings.CutPrefix(k, "secret."); ok {
-			if mode == "shell" {
+			if mode == "shell" || mode == "curl" {
 				return m
 			}
 			if !secretNameRe.MatchString(name) {
@@ -113,6 +120,8 @@ func Fill(tpl string, vars map[string]string, mode string) string {
 		switch {
 		case mode == "shell":
 			return Sq(val)
+		case mode == "curl":
+			return Sq(curlSafe(val))
 		case mode == "url":
 			return strings.ReplaceAll(url.QueryEscape(val), "+", "%20")
 		case mode == "json" && k != "payload":
@@ -154,7 +163,11 @@ func Build(h Hook, event string, data map[string]any, now time.Time) Delivery {
 	vars := Vars(event, data, now)
 	d := Delivery{T: now.UnixMilli(), HookID: h.ID, Hook: h.Name, Event: event, Kind: h.Kind, Timeout: h.Timeout, Headers: [][2]string{}, Env: [][2]string{}}
 	if h.Shell() {
-		d.Command = Fill(h.Cmd, vars, "shell")
+		mode := "shell"
+		if h.Kind == "curl" {
+			mode = "curl"
+		}
+		d.Command = Fill(h.Cmd, vars, mode)
 		d.Cwd = h.Cwd
 		d.Env = [][2]string{{"SWARM_EVENT", event}, {"SWARM_TIME", vars["time"]}}
 		if _, ok := vars["torrent.name"]; ok {
