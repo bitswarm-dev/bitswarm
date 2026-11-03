@@ -92,8 +92,11 @@ func Vars(event string, data map[string]any, now time.Time) map[string]string {
 func Fill(tpl string, vars map[string]string, mode string) string {
 	return placeholderRe.ReplaceAllStringFunc(tpl, func(m string) string {
 		k := placeholderRe.FindStringSubmatch(m)[1]
-		if strings.HasPrefix(k, "secret.") {
-			return m
+		if name, ok := strings.CutPrefix(k, "secret."); ok {
+			if mode == "shell" {
+				return m
+			}
+			return secretToken(name)
 		}
 		val, ok := vars[k]
 		if !ok {

@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"net/url"
 	"os"
 	"regexp"
@@ -13,12 +15,29 @@ const (
 	secretMask      = "********"
 )
 
+var secretNonce = newNonce()
+
 var (
+	tokenOpen      = "⟦S" + secretNonce + ":"
+	tokenClose     = "⟧"
+	tokenRe        = regexp.MustCompile(regexp.QuoteMeta(tokenOpen) + `([A-Za-z0-9_]+)` + regexp.QuoteMeta(tokenClose))
 	secretRe       = regexp.MustCompile(`\{\{\s*secret\.([A-Za-z0-9_]+)\s*\}\}`)
 	secretNameRe   = regexp.MustCompile(`^[A-Z][A-Z0-9_]{0,63}$`)
 	secretHeaderRe = regexp.MustCompile(`(?i)^(authorization|proxy-authorization|x-api-key|api-key|x-auth-token|cookie|set-cookie)$`)
 	schemeRe       = regexp.MustCompile(`^(Bearer|Basic|Token|Digest|Bot)\s+`)
 )
+
+func newNonce() string {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		panic("hooks: no random source for the secret marker: " + err.Error())
+	}
+	return hex.EncodeToString(b)
+}
+
+func secretToken(name string) string { return tokenOpen + name + tokenClose }
+
+func displaySecrets(s string) string { return tokenRe.ReplaceAllString(s, "{{secret.$1}}") }
 
 type missingSecretError struct{ name string }
 
@@ -74,7 +93,7 @@ func resolveSecrets(d Delivery) (Delivery, []string) {
 	}
 	replace := func(mode string) func(string) string {
 		return func(m string) string {
-			name := secretRe.FindStringSubmatch(m)[1]
+			name := tokenRe.FindStringSubmatch(m)[1]
 			v, ok := secretEnv(name)
 			if !ok {
 				if !slices.Contains(missing, name) {
@@ -94,17 +113,41 @@ func resolveSecrets(d Delivery) (Delivery, []string) {
 		}
 	}
 	out := d
-	out.URL = secretRe.ReplaceAllStringFunc(d.URL, replace("url"))
+	out.URL = tokenRe.ReplaceAllStringFunc(d.URL, replace("url"))
 	bodyMode := "text"
 	if isJSON {
 		bodyMode = "json"
 	}
-	out.Body = secretRe.ReplaceAllStringFunc(d.Body, replace(bodyMode))
+	out.Body = tokenRe.ReplaceAllStringFunc(d.Body, replace(bodyMode))
 	out.Headers = make([][2]string, len(d.Headers))
 	for i, kv := range d.Headers {
-		out.Headers[i] = [2]string{kv[0], secretRe.ReplaceAllStringFunc(kv[1], replace("header"))}
+		out.Headers[i] = [2]string{kv[0], tokenRe.ReplaceAllStringFunc(kv[1], replace("header"))}
 	}
 	return out, missing
+}
+
+func scrubSecrets(msg string, sent Delivery) string {
+	text := sent.URL + "\n" + sent.Body
+	for _, kv := range sent.Headers {
+		text += "\n" + kv[1]
+	}
+	seen := map[string]bool{}
+	for _, m := range tokenRe.FindAllStringSubmatch(text, -1) {
+		name := m[1]
+		if seen[name] {
+			continue
+		}
+		seen[name] = true
+		v, ok := secretEnv(name)
+		if !ok || len(v) < 3 {
+			continue
+		}
+		ref := "{{secret." + name + "}}"
+		msg = strings.ReplaceAll(msg, v, ref)
+		msg = strings.ReplaceAll(msg, url.QueryEscape(v), ref)
+		msg = strings.ReplaceAll(msg, url.PathEscape(v), ref)
+	}
+	return msg
 }
 
 func maskValue(v string) string {
@@ -154,8 +197,10 @@ func maskDelivery(d Delivery) Delivery {
 	if d.Kind == "cmd" {
 		return d
 	}
+	d.URL, d.Body = displaySecrets(d.URL), displaySecrets(d.Body)
 	hs := make([][2]string, len(d.Headers))
 	for i, kv := range d.Headers {
+		kv[1] = displaySecrets(kv[1])
 		if IsSecretHeader(kv[0]) {
 			kv[1] = maskValue(kv[1])
 		}

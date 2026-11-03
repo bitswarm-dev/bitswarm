@@ -427,14 +427,14 @@ func (s *Service) once(ctx context.Context, sent Delivery, signingSecret string)
 	}
 	req, err := http.NewRequestWithContext(ctx, d.Method, d.URL, strings.NewReader(d.Body))
 	if err != nil {
-		return 0, errors.New(redact.Err(err))
+		return 0, errors.New(scrubSecrets(redact.Err(err), sent))
 	}
 	for _, kv := range d.Headers {
 		req.Header.Set(kv[0], kv[1])
 	}
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return 0, errors.New(strings.TrimPrefix(redact.Err(err), d.Method+" "))
+		return 0, errors.New(scrubSecrets(strings.TrimPrefix(redact.Err(err), d.Method+" "), sent))
 	}
 	defer resp.Body.Close()
 	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 1<<20))

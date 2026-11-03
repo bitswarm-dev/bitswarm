@@ -13,18 +13,25 @@ import (
 	"time"
 )
 
-func TestFill_SecretPlaceholderStaysLiteral(t *testing.T) {
+func TestFill_SecretPlaceholderBecomesMarker(t *testing.T) {
 	vars := map[string]string{"torrent.name": "x"}
 	tests := []struct{ tpl, mode, want string }{
 		{"Bearer {{secret.API_KEY}}", "text", "Bearer {{secret.API_KEY}}"},
-		{"?key={{ secret.API_KEY }}", "url", "?key={{ secret.API_KEY }}"},
+		{"?key={{ secret.API_KEY }}", "url", "?key={{secret.API_KEY}}"},
 		{`"{{secret.API_KEY}}"`, "json", `"{{secret.API_KEY}}"`},
 		{"{{secret.API_KEY}} {{torrent.name}}", "text", "{{secret.API_KEY}} x"},
 	}
 	for _, tc := range tests {
-		if got := Fill(tc.tpl, vars, tc.mode); got != tc.want {
-			t.Errorf("Fill(%q, %s) = %q, want %q", tc.tpl, tc.mode, got, tc.want)
+		got := Fill(tc.tpl, vars, tc.mode)
+		if strings.Contains(got, "{{secret.") || !strings.Contains(got, tokenOpen) {
+			t.Errorf("Fill(%q, %s) = %q; the author’s reference should become the private marker", tc.tpl, tc.mode, got)
 		}
+		if shown := displaySecrets(got); shown != tc.want {
+			t.Errorf("displaySecrets(Fill(%q, %s)) = %q, want %q", tc.tpl, tc.mode, shown, tc.want)
+		}
+	}
+	if got := Fill("echo {{secret.API_KEY}}", vars, "shell"); got != "echo {{secret.API_KEY}}" {
+		t.Errorf("a shell template should keep the text as it is, got %q", got)
 	}
 }
 
@@ -71,6 +78,7 @@ func TestSecretEnv(t *testing.T) {
 func TestResolveSecrets(t *testing.T) {
 	t.Setenv("SWARM_SECRET_KEY", `a b&"c"`)
 	t.Setenv("SWARM_SECRET_NEWLINE", "line1\r\nX-Evil: 1")
+	tok := secretToken
 	tests := []struct {
 		name    string
 		d       Delivery
@@ -79,12 +87,13 @@ func TestResolveSecrets(t *testing.T) {
 		header  string
 		missing []string
 	}{
-		{"url is escaped", Delivery{URL: "https://x/s?k={{secret.KEY}}"}, "https://x/s?k=a%20b%26%22c%22", "", "", nil},
-		{"json body is escaped", Delivery{Body: `{"k":"{{secret.KEY}}"}`, Headers: [][2]string{{"Content-Type", "application/json"}}}, "", `{"k":"a b&\"c\""}`, "", nil},
-		{"text body is raw", Delivery{Body: "k={{secret.KEY}}", Headers: [][2]string{{"Content-Type", "text/plain"}}}, "", `k=a b&"c"`, "", nil},
-		{"header drops newlines", Delivery{Headers: [][2]string{{"Authorization", "Bearer {{secret.NEWLINE}}"}}}, "", "", "Bearer line1X-Evil: 1", nil},
-		{"spaces in the placeholder", Delivery{Headers: [][2]string{{"X-Api-Key", "{{ secret.KEY }}"}}}, "", "", `a b&"c"`, nil},
-		{"missing is reported once", Delivery{URL: "https://x/{{secret.NOPE}}/{{secret.NOPE}}", Body: "{{secret.OTHER}}"}, "https://x/{{secret.NOPE}}/{{secret.NOPE}}", "{{secret.OTHER}}", "", []string{"NOPE", "OTHER"}},
+		{"url is escaped", Delivery{URL: "https://x/s?k=" + tok("KEY")}, "https://x/s?k=a%20b%26%22c%22", "", "", nil},
+		{"json body is escaped", Delivery{Body: `{"k":"` + tok("KEY") + `"}`, Headers: [][2]string{{"Content-Type", "application/json"}}}, "", `{"k":"a b&\"c\""}`, "", nil},
+		{"text body is raw", Delivery{Body: "k=" + tok("KEY"), Headers: [][2]string{{"Content-Type", "text/plain"}}}, "", `k=a b&"c"`, "", nil},
+		{"header drops newlines", Delivery{Headers: [][2]string{{"Authorization", "Bearer " + tok("NEWLINE")}}}, "", "", "Bearer line1X-Evil: 1", nil},
+		{"spaces in the template reference", Delivery{Headers: [][2]string{{"X-Api-Key", Fill("{{ secret.KEY }}", nil, "text")}}}, "", "", `a b&"c"`, nil},
+		{"missing is reported once", Delivery{URL: "https://x/" + tok("NOPE") + "/" + tok("NOPE"), Body: tok("OTHER")}, "https://x/" + tok("NOPE") + "/" + tok("NOPE"), tok("OTHER"), "", []string{"NOPE", "OTHER"}},
+		{"literal text is never resolved", Delivery{URL: "https://x/{{secret.KEY}}", Body: "{{secret.KEY}}", Headers: [][2]string{{"X-Name", "{{secret.KEY}}"}}}, "https://x/{{secret.KEY}}", "{{secret.KEY}}", "{{secret.KEY}}", nil},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -394,5 +403,89 @@ func TestPreview_MasksKeysAndFlagsMissingSecrets(t *testing.T) {
 	}
 	if strings.Join(p.MissingSecrets, ",") != "MISSING_ONE" || len(p.Unknown) != 0 {
 		t.Errorf("missing = %v, unknown = %v", p.MissingSecrets, p.Unknown)
+	}
+}
+
+func TestSecretInjection_EventDataCannotPullSecrets(t *testing.T) {
+	t.Setenv("SWARM_SECRET_API_KEY", "real-key-5150")
+	t.Setenv("SWARM_SECRET_OTHER", "other-secret-777")
+	names := []string{"{{secret.API_KEY}}", "{{ secret.OTHER }}", "x{{secret.API_KEY}}{{secret.OTHER}}y"}
+	for _, name := range names {
+		t.Run(name, func(t *testing.T) {
+			var gotURL, gotName, gotAuth, gotBody string
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				b, _ := io.ReadAll(r.Body)
+				gotURL, gotName, gotAuth, gotBody = r.URL.RawQuery, r.Header.Get("X-Name"), r.Header.Get("Authorization"), string(b)
+			}))
+			defer srv.Close()
+			svc, _ := newSvc(t, false)
+			svc.SetSamples(Samples{Torrent: func(context.Context) map[string]any { return torrentInfo(name, "") }})
+			ctx := context.Background()
+			h := apiHook(srv.URL + "/send?n={{torrent.name}}")
+			h.Headers = "Content-Type: application/json\nAuthorization: Bearer {{secret.API_KEY}}\nX-Name: {{torrent.name}}"
+			h.Body = `{"n":"{{torrent.name}}","p":{{payload}}}`
+			v, err := svc.Create(ctx, h)
+			if err != nil {
+				t.Fatal(err)
+			}
+			d, _ := svc.Test(ctx, v.ID)
+			if d.Status != "sent" {
+				t.Fatalf("status = %q (%s)", d.Status, d.Error)
+			}
+			if gotAuth != "Bearer real-key-5150" {
+				t.Errorf("the author’s own reference should resolve, got %q", gotAuth)
+			}
+			for where, text := range map[string]string{"query": gotURL, "X-Name header": gotName, "body": gotBody} {
+				if strings.Contains(text, "real-key-5150") || strings.Contains(text, "other-secret-777") {
+					t.Errorf("event data pulled a secret into the %s: %q", where, text)
+				}
+			}
+			if !strings.Contains(gotBody, "secret.") {
+				t.Errorf("the torrent name should arrive as plain text, got body %q", gotBody)
+			}
+		})
+	}
+}
+
+func TestDelivery_ErrorsDoNotRevealASecretInThePath(t *testing.T) {
+	t.Setenv("SWARM_SECRET_TG_TOKEN", "123456:ABC-DEF_ghi/jkl")
+	svc, l := newSvc(t, false)
+	ctx := context.Background()
+	h := apiHook("http://127.0.0.1:1/bot{{secret.TG_TOKEN}}/sendMessage")
+	h.Retries = 0
+	v, err := svc.Create(ctx, h)
+	if err != nil {
+		t.Fatal(err)
+	}
+	d, _ := svc.Test(ctx, v.ID)
+	if d.Status != "failed" {
+		t.Fatalf("status = %q", d.Status)
+	}
+	all, _ := svc.Deliveries(ctx)
+	logged := strings.Join(l.lines, "\n")
+	for name, text := range map[string]string{"error": d.Error, "stored URL": all[0].URL, "stored text": all[0].Text, "log": logged} {
+		if strings.Contains(text, "ABC-DEF") || strings.Contains(text, "jkl") {
+			t.Errorf("%s reveals the token: %q", name, text)
+		}
+	}
+	if !strings.Contains(d.Error, "{{secret.TG_TOKEN}}") {
+		t.Errorf("the error should name the secret, not show it: %q", d.Error)
+	}
+}
+
+func TestMaskDelivery_ShowsReferencesNotMarkers(t *testing.T) {
+	h := Hook{Kind: "api", Method: "POST", URL: "https://x/y?k={{secret.K1}}", Headers: "Content-Type: application/json\nAuthorization: Bearer {{secret.K1}}", Body: `{"k":"{{secret.K1}}"}`}
+	d := Build(h, "torrent.completed", map[string]any{}, time.Unix(1_700_000_000, 0))
+	if !strings.Contains(d.URL, tokenOpen) {
+		t.Fatal("test setup: Build should hold the private marker")
+	}
+	got := maskDelivery(d)
+	for name, v := range map[string]string{"URL": got.URL, "Body": got.Body, "Text": got.Text, "Copy": got.Copy, "header": got.Headers[1][1]} {
+		if strings.Contains(v, tokenOpen) || strings.Contains(v, "⟦") {
+			t.Errorf("%s still has the private marker: %q", name, v)
+		}
+	}
+	if got.URL != "https://x/y?k={{secret.K1}}" || got.Headers[1][1] != "Bearer {{secret.K1}}" || got.Body != `{"k":"{{secret.K1}}"}` {
+		t.Errorf("references should show as written: url=%q header=%q body=%q", got.URL, got.Headers[1][1], got.Body)
 	}
 }
