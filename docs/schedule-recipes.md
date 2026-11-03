@@ -96,7 +96,7 @@ If you already have the address of a results page, such as a saved search or a f
 
 ## Tidy names as they download: a rename preset
 
-Release names often look like `[Debian] Ubuntu - 2006 (100) [919404B].iso`: a group in brackets, a title, a number, a detail in parentheses and a hash in brackets. A rename preset can sort each file into a folder named after the title. Create it under **Auto rename**, or inline from the schedule's **Rename preset** field.
+Release names often look like `[Debian] Ubuntu - 2006 (latest) [919404B].iso`: a group in brackets, a title, a number, a label in parentheses and a hash in brackets. A rename preset can sort each file into a folder named after the title. Create it under **Auto rename**, or inline from the schedule's **Rename preset** field.
 
 | Field | Value |
 |---|---|
@@ -115,7 +115,7 @@ Type the sample name into **Test your regex** and check the result before you sa
 
 | Name | After | Result |
 |---|---|---|
-| `[Debian] Ubuntu - 2006 (100) [919404B].iso` | `Ubuntu/MyDebian/Ubuntu-2006.iso` | Renamed |
+| `[Debian] Ubuntu - 2006 (latest) [919404B].iso` | `Ubuntu/MyDebian/Ubuntu-2006.iso` | Renamed |
 
 How it reads:
 
@@ -126,7 +126,7 @@ How it reads:
 
 Things to know:
 
-- Every part is `.+?`, which matches any text, so it keeps working when the group tag, the number in the parentheses or the hash look different, such as `(100)` or `(2024)`, or `[919404B]` or `[A1B2C3D]`. Strict patterns such as `\d\d` or `[0-9A-F]+` stop matching when a name differs a little.
+- Every part is `.+?`, which matches any text, so it keeps working when the group tag, the label in the parentheses or the hash look different, such as `(latest)` or `(100)`, or `[919404B]` or `[A1B2C3D]`. Strict patterns such as `\d\d` or `[0-9A-F]+` stop matching when a name differs a little.
 - With **Keep the file extension** on, the pattern is tested against the name without `.iso`, so end it with the closing `]` and don't put the extension in it.
 - A title that itself contains ` - ` is split at the first one.
 - Bitswarm uses Go's regular expression syntax: no lookahead and no backreferences.
