@@ -52,6 +52,7 @@ export interface HookPreview {
   unknown: string[];
   empty: string[];
   signed: boolean;
+  missingSecrets: string[];
 }
 
 export const EVENT_GROUPS: [string, [string, string][]][] = [
