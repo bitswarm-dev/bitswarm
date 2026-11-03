@@ -1,19 +1,64 @@
 name: Release
 
 on:
-  release:
-    types: [published]
+  push:
+    tags: ["v*.*.*"]
 
 permissions:
   contents: read
 
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
 env:
-  RELEASE_TAG: ${{ github.event.release.tag_name }}
-  PRERELEASE: ${{ github.event.release.prerelease }}
+  RELEASE_TAG: ${{ github.ref_name }}
 
 jobs:
-  images:
+  prepare:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      prerelease: ${{ steps.v.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - id: v
+        run: |
+          set -eu
+          printf '%s' "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$' || { echo "Release tag must look like v1.2.3 or v1.2.3-rc.1"; exit 1; }
+          version="${RELEASE_TAG#v}"
+          app=$(sed -n 's/^export const VERSION = "\(.*\)";/\1/p' dashboard/src/pages/about/About.tsx)
+          compose=$(grep -o 'SWARM_VERSION:-[^}]*' docker-compose.yml | head -1 | cut -d- -f2-)
+          [ "$app" = "$version" ] || { echo "About.tsx says VERSION is $app but the tag is $version. Bump it and tag again."; exit 1; }
+          [ "$compose" = "$version" ] || { echo "docker-compose.yml pins $compose but the tag is $version. Bump it and tag again."; exit 1; }
+          prerelease=false
+          case "$version" in *-*) prerelease=true;; esac
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          PRERELEASE: ${{ steps.v.outputs.prerelease }}
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          set -eu
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists. Adding the build to it."
+            exit 0
+          fi
+          flags=""
+          if [ "$PRERELEASE" = "true" ]; then flags="--prerelease"; fi
+          gh release create "$RELEASE_TAG" --verify-tag --title "Bitswarm $VERSION" --generate-notes $flags \
+            --notes "Docker images for linux/amd64, arm64, arm/v7 and 386 are on Docker Hub as dockerkeithics/bitswarm-server and dockerkeithics/bitswarm-web. Server binaries for Linux, macOS and Windows and the dashboard build are attached, with SHA256SUMS. Licensed under the PolyForm Noncommercial License 1.0.0."
+
+  images:
+    needs: prepare
+    runs-on: ubuntu-latest
+    env:
+      PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
     strategy:
       fail-fast: false
       matrix:
@@ -25,7 +70,7 @@ jobs:
       - id: v
         run: |
           set -eu
-          printf '%s' "$RELEASE_TAG" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$' || { echo "Release tag must look like v1.2.3"; exit 1; }
+          printf '%s' "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$' || { echo "Release tag must look like v1.2.3"; exit 1; }
           version="${RELEASE_TAG#v}"
           suffix="${{ matrix.platform }}"
           suffix="${suffix#linux/}"
@@ -57,8 +102,10 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ matrix.component }}-${{ matrix.platform }}
 
   manifest:
-    needs: images
+    needs: [prepare, images]
     runs-on: ubuntu-latest
+    env:
+      PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
     strategy:
       matrix:
         component: [server, web]
@@ -72,7 +119,7 @@ jobs:
 
       - run: |
           set -eu
-          printf '%s' "$RELEASE_TAG" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$'
+          printf '%s' "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$'
           version="${RELEASE_TAG#v}"
           image="dockerkeithics/bitswarm-${{ matrix.component }}"
           suffixes="amd64 arm64 arm-v7 386"
@@ -86,6 +133,7 @@ jobs:
           fi
 
   binaries:
+    needs: prepare
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -106,7 +154,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -eu
-          printf '%s' "$RELEASE_TAG" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$'
+          printf '%s' "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$'
           version="${RELEASE_TAG#v}"
           out="$PWD/out"
           mkdir -p "$out" build

@@ -225,3 +225,13 @@ RSS feeds with auto-download rules · create torrent · built-in multi-site sear
 **Labels.** Tags cover the same need, so labels were removed. Presets, maintenance tasks and hooks are scoped by a tag, and schedules apply tags to what they add. Don't bring labels back unless asked.
 
 **AI auto-labeling** (considered with a small embedding model; the user decided against it). Don't add it unless asked.
+
+---
+
+## 11. Releasing
+
+A release starts from a version tag. Pushing a tag named `vX.Y.Z` (or `vX.Y.Z-rc.1` for a pre-release) runs `.github/workflows/docker-release.yml`, which creates the GitHub release, pushes the Docker images and attaches the server binaries.
+
+1. Bump the version in `dashboard/src/pages/about/About.tsx` (`VERSION`), in `docker-compose.yml` (the `SWARM_VERSION` default) and in `README.md`. The workflow stops if the tag doesn't match the first two.
+2. Merge that to `main`, tag the merge commit `vX.Y.Z` and push the tag.
+3. A tag with a `-` in it (for example `v1.0.0-rc.1`) is a pre-release: it gets versioned tags but not `latest`.
