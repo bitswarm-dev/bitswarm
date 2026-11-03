@@ -135,7 +135,7 @@ func (s *Service) validate(ctx context.Context, h Hook) error {
 	}
 	for _, e := range h.Events {
 		if !slices.Contains(Events, e) {
-			return Invalid("“" + e + "” isn’t an event Bitswarm knows.")
+			return Invalid("“" + e + "” isn’t an event BitSwarm knows.")
 		}
 	}
 	retries := Invalid("Retries must be a whole number from 0 to 10.")

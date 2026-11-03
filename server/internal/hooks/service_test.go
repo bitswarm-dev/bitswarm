@@ -326,7 +326,7 @@ func TestValidate(t *testing.T) {
 		{"curl must start with curl", func(h *Hook) {
 			*h = Hook{Kind: "curl", Name: "c", Cmd: "wget https://example.org", Timeout: 5, Events: []string{"torrent.added"}}
 		}, "must start with curl"},
-		{"unknown event", func(h *Hook) { h.Events = []string{"nope"} }, "isn’t an event Bitswarm knows"},
+		{"unknown event", func(h *Hook) { h.Events = []string{"nope"} }, "isn’t an event BitSwarm knows"},
 		{"bad method", func(h *Hook) { h.Method = "DELETE" }, "POST, PUT, PATCH or GET"},
 		{"bad url", func(h *Hook) { h.URL = "ftp://x" }, "full URL to call"},
 		{"no events", func(h *Hook) { h.Events = nil }, "at least one event"},

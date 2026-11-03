@@ -115,7 +115,7 @@ export function OptionsDialog({ kind, selection, onClose }: Props) {
                 </label>
               </div>
               <p className="hint" style={{ margin: 0 }}>
-                When it reaches the ratio, Bitswarm will {SEED_ACTION[set.seedAction]}, as set in Settings → BitTorrent.
+                When it reaches the ratio, BitSwarm will {SEED_ACTION[set.seedAction]}, as set in Settings → BitTorrent.
               </p>
             </>
           )}

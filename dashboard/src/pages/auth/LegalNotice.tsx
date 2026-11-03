@@ -29,7 +29,7 @@ export function LegalNotice({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal
-      title="Use Bitswarm legally"
+      title="Use BitSwarm legally"
       alert
       width="520px"
       onClose={() => undefined}
@@ -39,19 +39,19 @@ export function LegalNotice({ onClose }: { onClose: () => void }) {
             <path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z" />
             <path d="m9 12 2 2 4-4" />
           </svg>
-          <h2>Use Bitswarm legally</h2>
+          <h2>Use BitSwarm legally</h2>
         </header>
       }
     >
       <form onSubmit={submit} noValidate>
         <div className="ack">
-          <p>Bitswarm is a general-purpose BitTorrent client. It isn’t built for piracy, and it doesn’t provide, host or index any content.</p>
+          <p>BitSwarm is a general-purpose BitTorrent client. It isn’t built for piracy, and it doesn’t provide, host or index any content.</p>
           <p>
             Only download and share files you have the right to, such as open-source software, public-domain works and content released under free licenses. Copyright laws differ by country, and
             you’re responsible for following the laws where you live.
           </p>
           <p className="ack-legal">
-            <b>The author of Bitswarm isn’t liable</b> for how you use it, or for any content you download or share with it.
+            <b>The author of BitSwarm isn’t liable</b> for how you use it, or for any content you download or share with it.
           </p>
         </div>
         <label className="check">

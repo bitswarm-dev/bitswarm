@@ -33,7 +33,7 @@ export function Tokens() {
       <div className="sched-head">
         <div>
           <h2>API tokens</h2>
-          <p>Let scripts and other apps use Bitswarm’s Web API without your password. Each token has its own access level and expiry, and you can revoke it at any time.</p>
+          <p>Let scripts and other apps use BitSwarm’s Web API without your password. Each token has its own access level and expiry, and you can revoke it at any time.</p>
         </div>
       </div>
       <div className="note">
@@ -130,7 +130,7 @@ export function Tokens() {
 
       <section className="sgroup">
         <h3 className="pvh">Using a token</h3>
-        <p className="snote" style={{ margin: 0 }}>Send it in the Authorization header of each request to Bitswarm’s Web API.</p>
+        <p className="snote" style={{ margin: 0 }}>Send it in the Authorization header of each request to BitSwarm’s Web API.</p>
         <pre className="req">{`curl -H 'Authorization: Bearer swm_…' ${location.origin}/api/v1/torrents`}</pre>
       </section>
     </section>

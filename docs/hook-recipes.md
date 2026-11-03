@@ -1,10 +1,10 @@
 # Hook recipes
 
-Copy-paste API hooks for common services. Each one keeps its keys out of Bitswarm's database with `{{secret.NAME}}`, so the hook you save only ever holds the name. See [Keep keys out of the database](../README.md#keep-keys-out-of-the-database) for how Bitswarm reads the values.
+Copy-paste API hooks for common services. Each one keeps its keys out of BitSwarm's database with `{{secret.NAME}}`, so the hook you save only ever holds the name. See [Keep keys out of the database](../README.md#keep-keys-out-of-the-database) for how BitSwarm reads the values.
 
 **How to use a recipe**
 
-1. Set the environment variables listed under **Secrets** on the server, then restart Bitswarm. In Docker, put them in a `.env` file and pass them through `docker-compose.override.yml`, as the README shows.
+1. Set the environment variables listed under **Secrets** on the server, then restart BitSwarm. In Docker, put them in a `.env` file and pass them through `docker-compose.override.yml`, as the README shows.
 2. Go to **Hooks → New hook → Call an API** and copy the method, URL, headers and body.
 3. Pick the events in step 2, press **Send test**, and check the preview first. The editor warns you about any secret that isn't set.
 
@@ -67,7 +67,7 @@ Body:
 
 ```json
 {
-  "from": "Bitswarm <bitswarm@yourdomain.com>",
+  "from": "BitSwarm <bitswarm@yourdomain.com>",
   "to": ["you@example.com"],
   "subject": "Finished: {{torrent.name}}",
   "text": "{{torrent.name}} ({{torrent.size}}) finished downloading and is in {{torrent.path}}."
@@ -226,7 +226,7 @@ Body:
 
 ## Your own server, signed
 
-For a service you run yourself, send the whole event and let the receiver check it. Enter a **Signing secret** in step 4 of the editor, and Bitswarm adds an `X-Swarm-Signature` header, an HMAC-SHA256 of the body.
+For a service you run yourself, send the whole event and let the receiver check it. Enter a **Signing secret** in step 4 of the editor, and BitSwarm adds an `X-Swarm-Signature` header, an HMAC-SHA256 of the body.
 
 | | |
 |---|---|
@@ -252,4 +252,4 @@ Body:
 
 ## Run curl or a command instead
 
-Command and curl hooks can't use `{{secret.NAME}}`, and they only see `PATH` and `HOME` from Bitswarm's environment, not the variables in your shell. For those, let the script read its own key from a file it controls. If the service has an HTTP API, a **Call an API** hook with a secret is the simpler and safer choice.
+Command and curl hooks can't use `{{secret.NAME}}`, and they only see `PATH` and `HOME` from BitSwarm's environment, not the variables in your shell. For those, let the script read its own key from a file it controls. If the service has an HTTP API, a **Call an API** hook with a secret is the simpler and safer choice.

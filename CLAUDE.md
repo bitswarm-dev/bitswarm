@@ -1,16 +1,16 @@
-# CLAUDE.md — Bitswarm
+# CLAUDE.md — BitSwarm
 
-Instructions for AI coding agents (and humans) working on **Bitswarm**, a web UI for a BitTorrent client. Read this file before changing anything. For what Bitswarm does, see the feature list in [`README.md`](./README.md). Rules for the Go service live in [`server/CLAUDE.md`](./server/CLAUDE.md).
+Instructions for AI coding agents (and humans) working on **BitSwarm**, a web UI for a BitTorrent client. Read this file before changing anything. For what BitSwarm does, see the feature list in [`README.md`](./README.md). Rules for the Go service live in [`server/CLAUDE.md`](./server/CLAUDE.md).
 
 ---
 
 ## 1. What this project is
 
-Bitswarm is a browser-based interface for managing torrents, in the style of qBittorrent, Transmission and Deluge web UIs, with extra automation: scheduled site searches, regex rename presets, maintenance tasks, developer hooks, an execution log, API tokens and settings backup.
+BitSwarm is a browser-based interface for managing torrents, in the style of qBittorrent, Transmission and Deluge web UIs, with extra automation: scheduled site searches, regex rename presets, maintenance tasks, developer hooks, an execution log, API tokens and settings backup.
 
 **Current state: a React dashboard on a standalone Go server with a built-in BitTorrent engine.**
 
-The engine is **real and built in**: `server/internal/engine` wraps `github.com/anacrolix/torrent`, so Bitswarm downloads and seeds by itself with no qBittorrent, Transmission or other client. The old simulation only runs in demo mode (`SWARM_DEMO=1`). Every place where something is faked or unsupported must say so in the UI.
+The engine is **real and built in**: `server/internal/engine` wraps `github.com/anacrolix/torrent`, so BitSwarm downloads and seeds by itself with no qBittorrent, Transmission or other client. The old simulation only runs in demo mode (`SWARM_DEMO=1`). Every place where something is faked or unsupported must say so in the UI.
 
 | | |
 |---|---|
@@ -193,7 +193,7 @@ Every event in the table is emitted today. Use `Logger.Add(level, source, messag
 
 ## 8. Copy and legal text
 
-- Disclaimer language exists in the legal notice after sign-in, the hooks warning, About → Disclaimer, and the Hooks page note. Keep them consistent: Bitswarm isn't built for piracy, doesn't provide or index content, users are responsible for following their local laws, and the author and developers aren't liable for use, content, or damage from hooks and automation.
+- Disclaimer language exists in the legal notice after sign-in, the hooks warning, About → Disclaimer, and the Hooks page note. Keep them consistent: BitSwarm isn't built for piracy, doesn't provide or index content, users are responsible for following their local laws, and the author and developers aren't liable for use, content, or damage from hooks and automation.
 - These texts are product copy, **not legal advice**. If they change materially, flag it for a human or legal review.
 - Writing style: active voice, sentence case, name things the way users recognize them ("Download finished", not `torrent.completed`, except where the technical name sits next to it).
 

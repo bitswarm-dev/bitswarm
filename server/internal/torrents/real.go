@@ -386,7 +386,7 @@ const maxTorrentFile = 8 << 20
 func fetchTorrent(ctx context.Context, raw string) ([]byte, error) {
 	u, err := url.Parse(raw)
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
-		return nil, Invalid("The link " + raw + " isn’t a web address Bitswarm can download from.")
+		return nil, Invalid("The link " + raw + " isn’t a web address BitSwarm can download from.")
 	}
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
@@ -401,14 +401,14 @@ func fetchTorrent(ctx context.Context, raw string) ([]byte, error) {
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return nil, Invalid(fmt.Sprintf("%s answered %s when Bitswarm asked for the .torrent file.", u.Host, res.Status))
+		return nil, Invalid(fmt.Sprintf("%s answered %s when BitSwarm asked for the .torrent file.", u.Host, res.Status))
 	}
 	data, err := io.ReadAll(io.LimitReader(res.Body, maxTorrentFile+1))
 	if err != nil {
 		return nil, Invalid(fmt.Sprintf("Couldn’t read the .torrent file from %s: %v", u.Host, err))
 	}
 	if len(data) > maxTorrentFile {
-		return nil, Invalid("That .torrent file is larger than 8 MB, so Bitswarm won’t load it.")
+		return nil, Invalid("That .torrent file is larger than 8 MB, so BitSwarm won’t load it.")
 	}
 	return data, nil
 }

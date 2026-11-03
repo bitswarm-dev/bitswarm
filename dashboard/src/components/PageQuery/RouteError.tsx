@@ -11,7 +11,7 @@ export function RouteError({ error, reset }: ErrorComponentProps) {
     <div className="sched">
       <div className="note" role="alert">
         <span>
-          <strong>Couldn’t load this page.</strong> {message}. Check that the Bitswarm server is running, then{" "}
+          <strong>Couldn’t load this page.</strong> {message}. Check that the BitSwarm server is running, then{" "}
           <button className="btn" onClick={retry}>
             Try again
           </button>

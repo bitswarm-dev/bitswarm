@@ -68,7 +68,7 @@ export const SECTIONS: SectionDef[] = [
       {
         title: "Scheduled searches",
         fields: [
-          f("searchDelay", "number", "Wait between searches", { unit: "seconds", max: 3600, hint: "Bitswarm waits this long between fetching one search page and the next, across all schedules, so sites don’t rate-limit you. 0 turns the wait off." }),
+          f("searchDelay", "number", "Wait between searches", { unit: "seconds", max: 3600, hint: "BitSwarm waits this long between fetching one search page and the next, across all schedules, so sites don’t rate-limit you. 0 turns the wait off." }),
         ],
       },
     ],

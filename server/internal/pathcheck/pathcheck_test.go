@@ -70,7 +70,7 @@ func TestEnsure_Home(t *testing.T) {
 func TestError(t *testing.T) {
 	var target *Error
 	err := Ensure(filepath.Join(t.TempDir(), "x", "\x00bad"))
-	if !errors.As(err, &target) || !strings.Contains(err.Error(), "Pick a folder Bitswarm has write access to.") {
+	if !errors.As(err, &target) || !strings.Contains(err.Error(), "Pick a folder BitSwarm has write access to.") {
 		t.Errorf("err = %v", err)
 	}
 }

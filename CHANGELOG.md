@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Bitswarm are listed here, newest first. The format follows [Keep a Changelog](https://keepachangelog.com), and versions follow [Semantic Versioning](https://semver.org). The version comes from the git tag.
+All notable changes to BitSwarm are listed here, newest first. The format follows [Keep a Changelog](https://keepachangelog.com), and versions follow [Semantic Versioning](https://semver.org). The version comes from the git tag.
 
 ## [1.0.1] - 2026-11-03
 

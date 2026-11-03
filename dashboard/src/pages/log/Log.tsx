@@ -52,7 +52,7 @@ export function Log() {
       <div className="sched-head">
         <div>
           <h2>Execution log</h2>
-          <p>Everything Bitswarm did, newest first: torrents, schedules, renames, maintenance, hooks, sign-ins and settings.</p>
+          <p>Everything BitSwarm did, newest first: torrents, schedules, renames, maintenance, hooks, sign-ins and settings.</p>
         </div>
       </div>
       <div className="logbar">

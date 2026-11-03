@@ -40,13 +40,13 @@ export function HooksGate({ children }: { children: ReactNode }) {
         <div className="ack">
           <p>Hooks act on their own every time an event happens, with no confirmation:</p>
           <ul>
-            <li><b>Commands</b> run on the machine where Bitswarm runs, with Bitswarm’s permissions. A wrong command can delete or overwrite files.</li>
+            <li><b>Commands</b> run on the machine where BitSwarm runs, with BitSwarm’s permissions. A wrong command can delete or overwrite files.</li>
             <li><b>API calls</b> send torrent names, folders and other details to the address you enter.</li>
             <li>A hook that fires often can flood a server or start many programs at once.</li>
           </ul>
           <p>Only set up hooks you understand, and test them on unimportant data first.</p>
           <p className="ack-legal">
-            <b>You use hooks at your own risk.</b> Bitswarm and its developers aren’t responsible for any damage, data loss or other harm caused by hooks you create or run.
+            <b>You use hooks at your own risk.</b> BitSwarm and its developers aren’t responsible for any damage, data loss or other harm caused by hooks you create or run.
           </p>
         </div>
         <label className="check"><input type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} /> I understand the risks and I’m responsible for the hooks I set up</label>

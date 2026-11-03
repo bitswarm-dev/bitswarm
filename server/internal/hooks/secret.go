@@ -48,7 +48,7 @@ type noRetry interface{ noRetry() }
 type missingSecretError struct{ name string }
 
 func (e missingSecretError) Error() string {
-	return "the secret " + e.name + " isn’t set on the server. Set " + secretEnvPrefix + e.name + " (or " + secretEnvPrefix + e.name + "_FILE) and restart Bitswarm."
+	return "the secret " + e.name + " isn’t set on the server. Set " + secretEnvPrefix + e.name + " (or " + secretEnvPrefix + e.name + "_FILE) and restart BitSwarm."
 }
 
 func (missingSecretError) noRetry() {}

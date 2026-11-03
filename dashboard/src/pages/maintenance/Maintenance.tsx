@@ -153,7 +153,7 @@ export function Maintenance() {
       <div className="sched-head">
         <div>
           <h2>Maintenance</h2>
-          <p>Housekeeping tasks that keep Bitswarm tidy: retry failed torrents, clear out finished ones and watch disk space. Each task runs on its own timer.</p>
+          <p>Housekeeping tasks that keep BitSwarm tidy: retry failed torrents, clear out finished ones and watch disk space. Each task runs on its own timer.</p>
         </div>
       </div>
       <div className="rules">

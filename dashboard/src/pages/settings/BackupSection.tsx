@@ -94,7 +94,7 @@ export function BackupSection() {
     const f = e.target.files?.[0];
     e.target.value = "";
     if (!f) return;
-    if (f.size > MAX_BYTES) return setError("That file is too large to be a Bitswarm export.");
+    if (f.size > MAX_BYTES) return setError("That file is too large to be a BitSwarm export.");
     const rd = new FileReader();
     rd.onload = () => check(String(rd.result));
     rd.onerror = () => setError("Couldn’t read that file. Try pasting its contents instead.");
@@ -130,7 +130,7 @@ export function BackupSection() {
       <fieldset className="sgroup">
         <legend>Export</legend>
         <p className="snote" style={{ margin: 0 }}>
-          Save everything Bitswarm keeps as one JSON file, to move it to another computer or keep as a backup. Your Web UI password and API tokens are never exported.
+          Save everything BitSwarm keeps as one JSON file, to move it to another computer or keep as a backup. Your Web UI password and API tokens are never exported.
         </p>
         <div className="bkparts">
           {PARTS.map(([k, l]) => (
@@ -173,7 +173,7 @@ export function BackupSection() {
         {plan && (
           <div className="bkplan">
             <h4>Ready to import</h4>
-            <p className="snote" style={{ margin: 0 }}>Exported from Bitswarm {plan.from}{when}. Choose what to bring in:</p>
+            <p className="snote" style={{ margin: 0 }}>Exported from BitSwarm {plan.from}{when}. Choose what to bring in:</p>
             {plan.parts.map((p) => (
               <label key={p.key} className="check">
                 <input

@@ -1,4 +1,4 @@
-# Contributing to Bitswarm
+# Contributing to BitSwarm
 
 Thanks for helping. Bug reports, ideas, docs fixes and code are all welcome.
 

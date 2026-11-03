@@ -24,7 +24,7 @@ export function About() {
     check.mutate(undefined, {
       onSuccess: (st) => {
         if (st.state === "current") toast("You’re using the latest version");
-        if (st.state === "available" && st.latest) toast(`Bitswarm ${st.latest.version} is available. You’re using ${st.current}, so please update.`);
+        if (st.state === "available" && st.latest) toast(`BitSwarm ${st.latest.version} is available. You’re using ${st.current}, so please update.`);
       },
       onError: (e) => toast(e.message),
     });
@@ -47,10 +47,10 @@ export function About() {
   };
 
   return (
-    <section className="sched" aria-label="About Bitswarm">
+    <section className="sched" aria-label="About BitSwarm">
       <div className="sched-head">
         <div>
-          <h2>About Bitswarm</h2>
+          <h2>About BitSwarm</h2>
           <p>Version, session numbers and the small print.</p>
         </div>
       </div>
@@ -58,12 +58,12 @@ export function About() {
         <fieldset className="sgroup">
           <legend>Updates</legend>
           {check.isPending || upd.state === "checking" ? (
-            <div className="upd"><span className="spin" aria-hidden="true" /><div><h4>Checking for updates…</h4><p>Looking for a newer version of Bitswarm.</p></div></div>
+            <div className="upd"><span className="spin" aria-hidden="true" /><div><h4>Checking for updates…</h4><p>Looking for a newer version of BitSwarm.</p></div></div>
           ) : upd.state === "available" && latest ? (
             <div className="upd avail" role="status">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" strokeWidth="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <h4>Please update Bitswarm</h4>
+                <h4>Please update BitSwarm</h4>
                 <p>You’re using version <b className="num">{upd.current}</b>. The latest version is <b className="num">{latest.version}</b>, released {dateText(latest.date)}.</p>
                 <div className="acts">
                   <button className="btn primary" aria-expanded={show === "how"} onClick={() => setShow(show === "how" ? null : "how")}>How to update</button>
@@ -73,10 +73,10 @@ export function About() {
                 {show === "notes" && <ul>{latest.notes.map((n) => <li key={n}>{n}</li>)}</ul>}
                 {show === "how" && (
                   <ol>
-                    <li>Download Bitswarm {latest.version} from where you installed it, or pull the new image if you run it in Docker.</li>
-                    <li>Stop Bitswarm. Your torrents keep their progress.</li>
+                    <li>Download BitSwarm {latest.version} from where you installed it, or pull the new image if you run it in Docker.</li>
+                    <li>Stop BitSwarm. Your torrents keep their progress.</li>
                     <li>Replace the old files with the new ones.</li>
-                    <li>Start Bitswarm again. Your settings, schedules, presets and tags are kept.</li>
+                    <li>Start BitSwarm again. Your settings, schedules, presets and tags are kept.</li>
                   </ol>
                 )}
                 <p className="snote" style={{ margin: "8px 0 0" }}>Last checked {formatWhen(upd.checked)}</p>
@@ -86,7 +86,7 @@ export function About() {
             <div className="upd ok">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--up)" strokeWidth="2.4"><path d="m5 12 5 5 9-10" /></svg>
               <div>
-                <h4>Bitswarm is up to date</h4>
+                <h4>BitSwarm is up to date</h4>
                 <p>You’re using the latest version, <b className="num">{upd.current}</b>. Last checked {formatWhen(upd.checked)}.</p>
                 <div className="acts"><button className="btn" onClick={runCheck}>Check again</button></div>
               </div>
@@ -110,7 +110,7 @@ export function About() {
             <div className="upd">
               <div>
                 <h4>Version {upd.current}</h4>
-                <p>Check whether a newer version of Bitswarm is available.</p>
+                <p>Check whether a newer version of BitSwarm is available.</p>
                 <div className="acts"><button className="btn primary" onClick={runCheck}>Check for updates</button></div>
               </div>
             </div>
@@ -120,15 +120,15 @@ export function About() {
               type="checkbox"
               checked={set.autoUpdate}
               onChange={(e) =>
-                save.mutate({ ...set, autoUpdate: e.target.checked }, { onSuccess: () => toast(e.target.checked ? "Bitswarm will check for updates when it starts" : "Automatic update checks are off"), onError: (err) => toast(err.message) })
+                save.mutate({ ...set, autoUpdate: e.target.checked }, { onSuccess: () => toast(e.target.checked ? "BitSwarm will check for updates when it starts" : "Automatic update checks are off"), onError: (err) => toast(err.message) })
               }
             />{" "}
-            Check for updates automatically when Bitswarm starts
+            Check for updates automatically when BitSwarm starts
           </label>
           {upd.sample && <p className="snote" style={{ margin: 0 }}>This server is using a sample release feed, so “1.0.0” isn’t a real release.</p>}
         </fieldset>
         <fieldset className="sgroup">
-          <legend>Bitswarm</legend>
+          <legend>BitSwarm</legend>
           <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
             <img src="/logo.svg" alt="" width={48} height={48} style={{ borderRadius: 11, flex: "none" }} />
             <p style={{ margin: 0, maxWidth: "60ch" }}>A BitTorrent client with a web interface, with scheduled downloads, regex rename presets and tags.</p>
@@ -141,7 +141,7 @@ export function About() {
             <div><dt>Web UI port</dt><dd className="num">{set.webPort}{set.webHttps ? " (HTTPS)" : ""}</dd></div>
             <div><dt>Listening port</dt><dd className="num">{set.port}</dd></div>
           </dl>
-          {!stats.real && <p className="snote" style={{ margin: 0 }}>Demo mode: torrents, peers and speeds are generated by the server and nothing is downloaded. Start Bitswarm without demo mode for real downloads.</p>}
+          {!stats.real && <p className="snote" style={{ margin: 0 }}>Demo mode: torrents, peers and speeds are generated by the server and nothing is downloaded. Start BitSwarm without demo mode for real downloads.</p>}
         </fieldset>
         <fieldset className="sgroup">
           <legend>This session</legend>
@@ -157,7 +157,7 @@ export function About() {
         <fieldset className="sgroup">
           <legend>Disclaimer</legend>
           <p style={{ margin: 0, color: "var(--muted)", maxWidth: "68ch" }}>
-            Bitswarm is provided as is, without any warranty. Its developers aren’t responsible for any damage, data loss or other harm from using it, including downloads, automation, maintenance tasks and hooks you
+            BitSwarm is provided as is, without any warranty. Its developers aren’t responsible for any damage, data loss or other harm from using it, including downloads, automation, maintenance tasks and hooks you
             set up. Only download and share content you have the right to.
           </p>
         </fieldset>

@@ -1,4 +1,4 @@
-# Releasing Bitswarm
+# Releasing BitSwarm
 
 The core rule: **branches are where you work, tags are what you ship.** `main` is always releasable. A release is a version tag on `main`. Never move or reuse a tag.
 

@@ -2,7 +2,7 @@
 
 Copy-paste settings for **Scheduled** downloads. A schedule fetches a page on a timer, reads the magnet or `.torrent` links out of it with a CSS selector, keeps the ones whose names match your filters, and adds anything it hasn't seen before. See [Scheduled downloads](../README.md#scheduled-downloads) for the overview.
 
-Bitswarm doesn't provide or index content. Point a schedule only at sites you are allowed to download from, and follow your local laws.
+BitSwarm doesn't provide or index content. Point a schedule only at sites you are allowed to download from, and follow your local laws.
 
 **How to use a recipe**
 
@@ -11,13 +11,13 @@ Bitswarm doesn't provide or index content. Point a schedule only at sites you ar
 3. Set **Run every** in step 4, and optionally tags, a save folder and a rename preset in step 3. An empty **Save to** uses the default folder from Settings.
 4. Leave **Skip links that were already downloaded** on, so each link is added once.
 
-Bitswarm waits between searches (Settings → "Wait between searches", 5 seconds by default), so a long list of search terms is spread out and doesn't hammer the site.
+BitSwarm waits between searches (Settings → "Wait between searches", 5 seconds by default), so a long list of search terms is spread out and doesn't hammer the site.
 
 ---
 
 ## A Linux ISO from a distribution's download page
 
-This one needs no search terms. The page lists the files, and the schedule picks the one you want. It is the same check Bitswarm's own end-to-end test uses, and you can verify the result against the publisher's `SHA256SUMS`.
+This one needs no search terms. The page lists the files, and the schedule picks the one you want. It is the same check BitSwarm's own end-to-end test uses, and you can verify the result against the publisher's `SHA256SUMS`.
 
 | Field | Value |
 |---|---|
@@ -85,7 +85,7 @@ fedora workstation
 
 ## One page of results, no search terms
 
-If you already have the address of a results page, such as a saved search or a feed-like listing, paste it as the **Search URL** and leave **Search terms** empty. Bitswarm fetches that one address on each run.
+If you already have the address of a results page, such as a saved search or a feed-like listing, paste it as the **Search URL** and leave **Search terms** empty. BitSwarm fetches that one address on each run.
 
 | Field | Value |
 |---|---|
@@ -126,14 +126,14 @@ How it reads:
 - `^\[.+?\] ` skips the first bracket, whatever is in it.
 - `(.+?) - (.+?)` captures the title as `$1` and the number as `$2`.
 - ` \(.+?\) \[.+?\]$` skips the parentheses and the last bracket, whatever is in them.
-- In **Replace with**, `MyDebian` is plain text, a folder name you choose. The `/` moves the file into a folder inside the torrent's save folder, and Bitswarm creates the folders if they don't exist. The result is `Ubuntu/MyDebian/Ubuntu-2006.iso`.
+- In **Replace with**, `MyDebian` is plain text, a folder name you choose. The `/` moves the file into a folder inside the torrent's save folder, and BitSwarm creates the folders if they don't exist. The result is `Ubuntu/MyDebian/Ubuntu-2006.iso`.
 
 Things to know:
 
 - Every part is `.+?`, which matches any text, so it keeps working when the group tag, the label in the parentheses or the hash look different, such as `(latest)` or `(100)`, or `[919404B]` or `[A1B2C3D]`. Strict patterns such as `\d\d` or `[0-9A-F]+` stop matching when a name differs a little.
 - With **Keep the file extension** on, the pattern is tested against the name without `.iso`, so end it with the closing `]` and don't put the extension in it.
 - A title that itself contains ` - ` is split at the first one.
-- Bitswarm uses Go's regular expression syntax: no lookahead and no backreferences.
+- BitSwarm uses Go's regular expression syntax: no lookahead and no backreferences.
 - A file that already has the new name is numbered, like `Ubuntu-2006 (2).iso`, and never overwritten.
 
 ## Extras that work with any recipe

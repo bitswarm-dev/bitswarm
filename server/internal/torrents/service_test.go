@@ -529,7 +529,7 @@ func TestPathCheck_BlocksAddAndMove(t *testing.T) {
 	f.svc.SetPathCheck(func(p string) error {
 		checked = append(checked, p)
 		if strings.HasPrefix(p, "/locked") {
-			return errors.New("Bitswarm can’t write to " + p + ": permission denied.")
+			return errors.New("BitSwarm can’t write to " + p + ": permission denied.")
 		}
 		return nil
 	})

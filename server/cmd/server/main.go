@@ -131,7 +131,7 @@ func main() {
 	}
 	bus.Subscribe(hookSvc)
 	if cfg.AllowCommands {
-		xlog.Add("warn", "Hooks", "Command hooks are on (SWARM_ALLOW_COMMANDS=1). They run on this machine with Bitswarm’s permissions.")
+		xlog.Add("warn", "Hooks", "Command hooks are on (SWARM_ALLOW_COMMANDS=1). They run on this machine with BitSwarm’s permissions.")
 	}
 
 	if cfg.Demo {
@@ -144,7 +144,7 @@ func main() {
 	go torrentSvc.Run(ctx)
 
 	set := settingsSvc.Get()
-	xlog.Add("info", "App", "Bitswarm "+version+" started")
+	xlog.Add("info", "App", "BitSwarm "+version+" started")
 	xlog.Addf("info", "Network", "Listening for peers on port %d%s", set.Port, map[bool]string{true: ", forwarded with UPnP", false: ""}[set.Upnp])
 	if set.Dht {
 		xlog.Add("info", "Network", "DHT is on")
@@ -166,7 +166,7 @@ func main() {
 		case <-time.After(2 * time.Second):
 			if feed != nil && settingsSvc.Get().AutoUpdate {
 				if st := updateSvc.Check(ctx); st.State == "available" {
-					xlog.Addf("warn", "Updates", "Bitswarm %s is available. You’re running %s.", st.Latest.Version, version)
+					xlog.Addf("warn", "Updates", "BitSwarm %s is available. You’re running %s.", st.Latest.Version, version)
 				}
 			}
 		}

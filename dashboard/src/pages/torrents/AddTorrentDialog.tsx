@@ -226,7 +226,7 @@ export function AddTorrentDialog({ defaultTag, onClose, onAdded }: Props) {
           </label>
           {stats.real ? (
             <>
-              <label className="check"><input type="checkbox" disabled /> Skip hash check: not available. Bitswarm always checks files that are already on disk.</label>
+              <label className="check"><input type="checkbox" disabled /> Skip hash check: not available. BitSwarm always checks files that are already on disk.</label>
               <label className="check"><input type="checkbox" disabled /> Download in sequential order: not supported by the BitTorrent engine yet.</label>
               <label className="check"><input type="checkbox" disabled /> Download first and last pieces first: not supported by the BitTorrent engine yet.</label>
             </>

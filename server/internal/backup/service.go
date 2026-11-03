@@ -228,7 +228,7 @@ func parse(text string) (*parsed, error) {
 	}
 	parts, _ := j["parts"].(map[string]any)
 	if v, _ := j["swarm_backup"].(float64); v != 1 || parts == nil {
-		return nil, Invalid("This JSON isn’t a Bitswarm export. Bitswarm exports start with \"swarm_backup\": 1.")
+		return nil, Invalid("This JSON isn’t a BitSwarm export. BitSwarm exports start with \"swarm_backup\": 1.")
 	}
 	from, _ := j["app_version"].(string)
 	if from == "" {
@@ -338,7 +338,7 @@ func (s *Service) Check(ctx context.Context, in string) (Plan, error) {
 	counted("maintenance", "maintenance", "maintenance task")
 	counted("hooks", "hooks", "hook")
 	if len(plan.Parts) == 0 {
-		return Plan{}, Invalid("This export doesn’t contain anything Bitswarm can import.")
+		return Plan{}, Invalid("This export doesn’t contain anything BitSwarm can import.")
 	}
 	order := map[string]int{}
 	for i, k := range Parts {

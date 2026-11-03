@@ -1,4 +1,4 @@
-# bitswarm — Agent Guidance
+# BitSwarm — Agent Guidance
 
 Module: `bitswarm/server`
 

@@ -1,12 +1,12 @@
 # Third-party notices
 
-Bitswarm includes the third-party software listed below. Bitswarm's own license is in [LICENSE](./LICENSE). The licenses here are the ones those projects ship with, and they apply to their code only.
+BitSwarm includes the third-party software listed below. BitSwarm's own license is in [LICENSE](./LICENSE). The licenses here are the ones those projects ship with, and they apply to their code only.
 
 This list covers the Go modules compiled into the server binary and the npm packages bundled into the dashboard. Development tools that don't ship (TypeScript, Vite and so on) are left out.
 
 ## Not bundled
 
-- **Fonts:** Bricolage Grotesque, Figtree and JetBrains Mono are loaded from Google Fonts when the dashboard opens. They are not part of the Bitswarm files. All three are published under the SIL Open Font License 1.1.
+- **Fonts:** Bricolage Grotesque, Figtree and JetBrains Mono are loaded from Google Fonts when the dashboard opens. They are not part of the BitSwarm files. All three are published under the SIL Open Font License 1.1.
 - **Docker images:** the images also contain Alpine Linux and its packages (server) and nginx on Alpine (web). Their licenses are in the image: see `/usr/share/licenses` and the package database (`apk info -L`), and <https://nginx.org/LICENSE>.
 - **Source for MPL-2.0 code:** the Mozilla Public License 2.0 packages below are used unmodified. Their source is available from the project links in each module path, for example <https://github.com/anacrolix/torrent>, at the version listed.
 

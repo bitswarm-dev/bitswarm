@@ -18,7 +18,7 @@ export const BGS: [string, string][] = [
   ["aurora", "Aurora"],
   ["dots", "Dot grid"],
   ["grid", "Grid"],
-  ["swarm", "Bitswarm"],
+  ["swarm", "BitSwarm"],
   ["photo", "Your photo"],
 ];
 
