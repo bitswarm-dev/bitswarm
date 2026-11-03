@@ -23,7 +23,6 @@ func (h *Handler) RegisterRoutes(r fiber.Router) {
 	r.Get("/hooks/config", h.Config)
 	r.Get("/hooks/deliveries", h.Deliveries)
 	r.Post("/hooks/preview", h.Preview)
-	r.Post("/hooks/parse-curl", h.ParseCurl)
 	r.Put("/hooks/:id", h.Update)
 	r.Patch("/hooks/:id/enabled", h.Enabled)
 	r.Delete("/hooks/:id", h.Delete)
@@ -67,18 +66,6 @@ func (h *Handler) List(c *fiber.Ctx) error {
 }
 
 func (h *Handler) Config(c *fiber.Ctx) error { return c.JSON(h.svc.Config()) }
-
-func (h *Handler) ParseCurl(c *fiber.Ctx) error {
-	req, err := bind[CurlRequest](c)
-	if err != nil {
-		return fail(c, err)
-	}
-	out, err := ParseCurl(req.Command)
-	if err != nil {
-		return fail(c, err)
-	}
-	return c.JSON(out)
-}
 
 func (h *Handler) Deliveries(c *fiber.Ctx) error {
 	v, err := h.svc.Deliveries(c.Context())

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createHook, deleteHook, duplicateHook, parseCurl, setHookEnabled, testHook, updateHook } from "./api";
+import { createHook, deleteHook, duplicateHook, setHookEnabled, testHook, updateHook } from "./api";
 
 function useRefresh() {
   const client = useQueryClient();
@@ -22,7 +22,6 @@ export const useDuplicateHook = () => {
   const refresh = useRefresh();
   return useMutation({ mutationFn: duplicateHook, onSuccess: refresh });
 };
-export const useParseCurl = () => useMutation({ mutationFn: parseCurl });
 export const useDeleteHook = () => {
   const refresh = useRefresh();
   return useMutation({ mutationFn: deleteHook, onSuccess: refresh });

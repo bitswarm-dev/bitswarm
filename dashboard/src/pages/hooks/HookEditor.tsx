@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Modal } from "@/components/Modal/Modal";
 import { useCatalog } from "@/features/catalog/queries";
-import { useCreateHook, useParseCurl, useUpdateHook } from "@/features/hooks/mutations";
+import { useCreateHook, useUpdateHook } from "@/features/hooks/mutations";
 import { useHookPreview, useHooksConfig } from "@/features/hooks/queries";
 import { pickKnown } from "@/utils/safe";
 import { BLANK_HOOK, CURL_TEMPLATE, EVENT_GROUPS, PLACEHOLDERS, type Hook, type HookView } from "@/features/hooks/types";
@@ -20,13 +20,8 @@ export function HookEditor({ hook, onClose, onSaved }: Props) {
   const { data: config } = useHooksConfig();
   const create = useCreateHook();
   const update = useUpdateHook();
-  const parse = useParseCurl();
   const [form, setForm] = useState<Form>(() => ({ ...pickKnown(BLANK_HOOK, hook), secret: "", clearSecret: false }));
   const [error, setError] = useState("");
-  const [curlOpen, setCurlOpen] = useState(false);
-  const [curlText, setCurlText] = useState("");
-  const [curlError, setCurlError] = useState("");
-  const [imported, setImported] = useState<string[] | null>(null);
   const [debounced, setDebounced] = useState(form);
   const last = useRef<Field>("body");
   const refs = { url: useRef<HTMLInputElement>(null), body: useRef<HTMLTextAreaElement>(null), headers: useRef<HTMLTextAreaElement>(null), cmd: useRef<HTMLTextAreaElement>(null) };
@@ -44,23 +39,7 @@ export function HookEditor({ hook, onClose, onSaved }: Props) {
 
   const setKind = (k: Form["kind"]) => {
     last.current = k === "api" ? "body" : "cmd";
-    setCurlOpen(false);
-    setImported(null);
     setForm((f) => ({ ...f, kind: k, cmd: k === "curl" && !f.cmd.trim() ? CURL_TEMPLATE : f.cmd }));
-  };
-
-  const importCurl = () => {
-    setCurlError("");
-    parse.mutate(curlText, {
-      onSuccess: (r) => {
-        setForm((f) => ({ ...f, kind: "api", method: r.method, url: r.url, headers: r.headers, body: r.body }));
-        setImported(r.warnings);
-        setCurlOpen(false);
-        setCurlText("");
-        last.current = "body";
-      },
-      onError: (err: Error) => setCurlError(err.message),
-    });
   };
 
   const insert = (name: string) => {
@@ -97,33 +76,12 @@ export function HookEditor({ hook, onClose, onSaved }: Props) {
             <input type="text" value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="Notify my server" autoFocus />
           </label>
           <div className="seg kindseg" role="group" aria-label="Hook type">
-            <button type="button" aria-pressed={!cmd && !curlOpen} onClick={() => setKind("api")}>Call an API</button>
+            <button type="button" aria-pressed={!cmd} onClick={() => setKind("api")}>Call an API</button>
             <button type="button" aria-pressed={form.kind === "cmd"} onClick={() => setKind("cmd")}>Run a command</button>
             <button type="button" aria-pressed={curl} onClick={() => setKind("curl")}>Run curl</button>
-            <button type="button" aria-pressed={!cmd && curlOpen} onClick={() => { set("kind", "api"); setCurlOpen(true); }}>Paste curl</button>
           </div>
-          {!cmd && curlOpen ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <label className="field">
-                <span>curl command</span>
-                <textarea rows={8} className="mono" value={curlText} onChange={(e) => setCurlText(e.target.value)} spellCheck={false} placeholder={'curl -X POST "https://api.example.com/send" \\\n  -H "Authorization: Bearer {{secret.API_KEY}}" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"text": "Finished {{torrent.name}}"}\''} autoFocus />
-                <small>Paste a command from your service’s docs. Bitswarm fills in the method, address, headers and body, then switches to Call an API so you can check them. Nothing is run and no request is sent.</small>
-              </label>
-              {curlError && <p className="bad" style={{ margin: 0 }}>{curlError}</p>}
-              <div>
-                <button type="button" className="btn primary" disabled={!curlText.trim() || parse.isPending} onClick={importCurl}>Fill the form</button>
-              </div>
-            </div>
-          ) : !cmd ? (
+          {!cmd ? (
             <>
-              {imported && (
-                <p className="note" style={{ margin: 0 }}>
-                  <span>
-                    Filled from curl.{imported.length > 0 ? " Please check:" : " Nothing was left out."}
-                    {imported.length > 0 && <ul style={{ margin: "6px 0 0", paddingLeft: 18 }}>{imported.map((w) => <li key={w}>{w}</li>)}</ul>}
-                  </span>
-                </p>
-              )}
             <div className="hrow">
               <label className="field" style={{ flex: "none" }}>
                 <span>Method</span>
