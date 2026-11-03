@@ -46,6 +46,14 @@ export interface Delivery {
   millis: number;
 }
 
+export interface CurlImport {
+  method: string;
+  url: string;
+  headers: string;
+  body: string;
+  warnings: string[];
+}
+
 export interface HookPreview {
   event: string;
   text: string;

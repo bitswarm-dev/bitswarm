@@ -1,6 +1,6 @@
 import { del, patch, post, put, request } from "@/lib/http";
 import { safeArray } from "@/utils/safe";
-import type { Delivery, Hook, HookPreview, HookView } from "./types";
+import type { CurlImport, Delivery, Hook, HookPreview, HookView } from "./types";
 
 export async function listHooks(): Promise<HookView[]> {
   return safeArray(await request<HookView[] | null>("/hooks"));
@@ -18,3 +18,4 @@ export const duplicateHook = (id: number) => post<HookView>(`/hooks/${id}/duplic
 export const deleteHook = (id: number) => del<void>(`/hooks/${id}`);
 export const testHook = (id: number) => post<Delivery>(`/hooks/${id}/test`);
 export const previewHook = (h: Partial<Hook>) => post<HookPreview>("/hooks/preview", h);
+export const parseCurl = (command: string) => post<CurlImport>("/hooks/parse-curl", { command });
