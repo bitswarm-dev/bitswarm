@@ -43,6 +43,8 @@ A schedule searches a website on a timer, reads the magnet or `.torrent` links o
 
 <img src="docs/screenshots/scheduled-dark.png" alt="Bitswarm scheduled downloads page in the dark theme">
 
+Copy-paste settings for a distribution's download page, a search with a list of terms and a rename preset are in [Scheduled download recipes](docs/schedule-recipes.md).
+
 ### Auto rename
 
 A preset finds part of a name with a regular expression and replaces it. It can run on every finished download that matches a tag, from a schedule, or by hand with a live preview and undo. For files, a `/` in the replacement moves the file into that folder, which is created if it's missing. Regular expressions use Go syntax.
@@ -113,6 +115,7 @@ Notes:
 - Press **Send test** to send a sample event first. The preview under the form shows the request before anything leaves your machine.
 - Use an API key that can only send email, and rotate it if it ever leaks.
 - Replace `from` with an address your email service has verified. To send through a different service, change the URL, the headers and the body to match its API.
+- More copy-paste hooks that keep their keys in `{{secret.NAME}}`, for Cloudflare Email, Discord, Slack, Telegram, ntfy, Pushover and Gotify, are in [Hook recipes](docs/hook-recipes.md).
 
 #### Keep keys out of the database
 
