@@ -18,7 +18,6 @@ import (
 
 	"bitswarm/server/internal/docstore"
 	"bitswarm/server/internal/jsonutil"
-	"bitswarm/server/internal/redact"
 )
 
 var ErrNotFound = docstore.ErrNotFound
@@ -141,7 +140,7 @@ func (s *Service) validate(ctx context.Context, h Hook) error {
 	}
 	retries := Invalid("Retries must be a whole number from 0 to 10.")
 	if h.Kind == "cmd" {
-		if secretRe.MatchString(h.Cmd) {
+		if hasSecretRef(h.Cmd) {
 			return Invalid("Command hooks can’t use {{secret.NAME}}. API hooks can. In a command, read the key from your own file or environment instead.")
 		}
 		switch {
@@ -161,10 +160,8 @@ func (s *Service) validate(ctx context.Context, h Hook) error {
 	if !slices.Contains([]string{"POST", "PUT", "PATCH", "GET"}, h.Method) {
 		return Invalid("Choose POST, PUT, PATCH or GET.")
 	}
-	for _, n := range secretNames(h) {
-		if !secretNameRe.MatchString(n) {
-			return Invalid("Secret names use capital letters, digits and underscores, like {{secret.RESEND_KEY}}. “" + n + "” doesn’t.")
-		}
+	if n, bad := badSecretRef(h.URL + "\n" + h.Headers + "\n" + h.Body); bad {
+		return Invalid("Secret names use capital letters, digits and underscores, like {{secret.RESEND_KEY}}. “" + n + "” doesn’t.")
 	}
 	raw := Fill(h.URL, Vars("torrent.completed", s.sample(ctx, "torrent.completed"), s.now()), "url")
 	if u, err := url.Parse(raw); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
@@ -390,8 +387,8 @@ func (s *Service) send(ctx context.Context, h Hook, d *Delivery) {
 		d.Attempts = i
 		code, err := s.once(ctx, *d, h.Secret)
 		d.Response = code
-		var missing missingSecretError
-		if errors.As(err, &missing) {
+		var stop noRetry
+		if errors.As(err, &stop) {
 			d.Status, d.Error = "failed", err.Error()
 			return
 		}
@@ -418,6 +415,9 @@ func (s *Service) once(ctx context.Context, sent Delivery, signingSecret string)
 	if len(missing) > 0 {
 		return 0, missingSecretError{missing[0]}
 	}
+	if hasMarker(d) {
+		return 0, unresolvedSecretError{}
+	}
 	if signingSecret != "" && d.Body != sent.Body {
 		for i := range d.Headers {
 			if strings.EqualFold(d.Headers[i][0], "X-Swarm-Signature") {
@@ -427,14 +427,14 @@ func (s *Service) once(ctx context.Context, sent Delivery, signingSecret string)
 	}
 	req, err := http.NewRequestWithContext(ctx, d.Method, d.URL, strings.NewReader(d.Body))
 	if err != nil {
-		return 0, errors.New(scrubSecrets(redact.Err(err), sent))
+		return 0, errors.New(safeError(err, sent))
 	}
 	for _, kv := range d.Headers {
 		req.Header.Set(kv[0], kv[1])
 	}
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return 0, errors.New(scrubSecrets(strings.TrimPrefix(redact.Err(err), d.Method+" "), sent))
+		return 0, errors.New(strings.TrimPrefix(safeError(err, sent), d.Method+" "))
 	}
 	defer resp.Body.Close()
 	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 1<<20))

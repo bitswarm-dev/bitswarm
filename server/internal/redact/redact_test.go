@@ -56,3 +56,30 @@ func TestErr(t *testing.T) {
 		})
 	}
 }
+
+func TestRawURL(t *testing.T) {
+	tests := []struct {
+		name, in, want string
+	}{
+		{"plain", "https://example.com/a/b", "https://example.com/a/b"},
+		{"query removed", "https://example.com/a?apikey=SECRET", "https://example.com/a?…"},
+		{"fragment removed", "https://example.com/a#token=SECRET", "https://example.com/a?…"},
+		{"credentials removed", "https://user:SECRET@example.com/a", "https://example.com/a"},
+		{"credentials with an at sign", "https://user:SE@CRET@example.com/a", "https://example.com/a"},
+		{"references in the path stay", "https://api.example.com/bot{{secret.TG_TOKEN}}/send?k=SECRET", "https://api.example.com/bot{{secret.TG_TOKEN}}/send?…"},
+		{"no path", "https://example.com?k=SECRET", "https://example.com?…"},
+		{"no scheme", "example.com/a?k=SECRET", "example.com/a?…"},
+		{"empty", "", ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := RawURL(tt.in)
+			if got != tt.want {
+				t.Errorf("RawURL(%q) = %q, want %q", tt.in, got, tt.want)
+			}
+			if strings.Contains(got, "SECRET") {
+				t.Errorf("RawURL(%q) leaked a secret: %q", tt.in, got)
+			}
+		})
+	}
+}

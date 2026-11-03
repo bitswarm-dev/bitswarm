@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -448,28 +449,44 @@ func TestSecretInjection_EventDataCannotPullSecrets(t *testing.T) {
 }
 
 func TestDelivery_ErrorsDoNotRevealASecretInThePath(t *testing.T) {
-	t.Setenv("SWARM_SECRET_TG_TOKEN", "123456:ABC-DEF_ghi/jkl")
-	svc, l := newSvc(t, false)
-	ctx := context.Background()
-	h := apiHook("http://127.0.0.1:1/bot{{secret.TG_TOKEN}}/sendMessage")
-	h.Retries = 0
-	v, err := svc.Create(ctx, h)
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		name  string
+		value string
+		leaks []string
+	}{
+		{"token with a colon and a slash", "123456:ABC-DEF_ghi/jkl", []string{"ABC-DEF", "jkl", "123456"}},
+		{"space and plus", "ab c+d", []string{"ab c", "ab%20c", "ab+c", "c+d", "c%2Bd"}},
+		{"percent and unicode", "p%41ss-é", []string{"p%41ss", "p%2541ss", "é", "%C3%A9"}},
+		{"two characters", "qz", []string{"/botqz", "qz/"}},
 	}
-	d, _ := svc.Test(ctx, v.ID)
-	if d.Status != "failed" {
-		t.Fatalf("status = %q", d.Status)
-	}
-	all, _ := svc.Deliveries(ctx)
-	logged := strings.Join(l.lines, "\n")
-	for name, text := range map[string]string{"error": d.Error, "stored URL": all[0].URL, "stored text": all[0].Text, "log": logged} {
-		if strings.Contains(text, "ABC-DEF") || strings.Contains(text, "jkl") {
-			t.Errorf("%s reveals the token: %q", name, text)
-		}
-	}
-	if !strings.Contains(d.Error, "{{secret.TG_TOKEN}}") {
-		t.Errorf("the error should name the secret, not show it: %q", d.Error)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("SWARM_SECRET_TG_TOKEN", tc.value)
+			svc, l := newSvc(t, false)
+			ctx := context.Background()
+			h := apiHook("http://127.0.0.1:1/bot{{secret.TG_TOKEN}}/sendMessage")
+			h.Retries = 0
+			v, err := svc.Create(ctx, h)
+			if err != nil {
+				t.Fatal(err)
+			}
+			d, _ := svc.Test(ctx, v.ID)
+			if d.Status != "failed" {
+				t.Fatalf("status = %q", d.Status)
+			}
+			all, _ := svc.Deliveries(ctx)
+			logged := strings.Join(l.lines, "\n")
+			for name, text := range map[string]string{"error": d.Error, "stored URL": all[0].URL, "stored text": all[0].Text, "log": logged} {
+				for _, leak := range tc.leaks {
+					if strings.Contains(text, leak) {
+						t.Errorf("%s reveals part of the secret (%q): %q", name, leak, text)
+					}
+				}
+			}
+			if !strings.Contains(d.Error, "/bot{{secret.TG_TOKEN}}/sendMessage") {
+				t.Errorf("the error should name the secret where it was written: %q", d.Error)
+			}
+		})
 	}
 }
 
@@ -487,5 +504,88 @@ func TestMaskDelivery_ShowsReferencesNotMarkers(t *testing.T) {
 	}
 	if got.URL != "https://x/y?k={{secret.K1}}" || got.Headers[1][1] != "Bearer {{secret.K1}}" || got.Body != `{"k":"{{secret.K1}}"}` {
 		t.Errorf("references should show as written: url=%q header=%q body=%q", got.URL, got.Headers[1][1], got.Body)
+	}
+}
+
+func TestFill_InvalidSecretNamesProduceNoMarker(t *testing.T) {
+	tests := []string{
+		"x {{secret.a.b}} y", "x {{secret.lower}} y", "x {{secret.Mixed_Case}} y", "x {{secret.}} y", "x {{secret.1ABC}} y", "x {{secret.A.B.C}} y",
+	}
+	for _, tpl := range tests {
+		for _, mode := range []string{"text", "url", "json"} {
+			got := Fill(tpl, nil, mode)
+			if strings.Contains(got, tokenOpen) || strings.Contains(got, "⟦") {
+				t.Errorf("Fill(%q, %s) = %q; an invalid secret name must not produce a marker", tpl, mode, got)
+			}
+		}
+	}
+	if got := Fill("{{secret.GOOD_NAME_2}}", nil, "text"); !strings.Contains(got, tokenOpen) {
+		t.Errorf("a valid name should produce a marker, got %q", got)
+	}
+}
+
+func TestValidate_SecretNameGrammar(t *testing.T) {
+	svc, _ := newSvc(t, true)
+	ctx := context.Background()
+	tests := []struct {
+		name, ref string
+		ok        bool
+	}{
+		{"valid", "{{secret.RESEND_KEY}}", true},
+		{"valid with digits", "{{secret.KEY_2}}", true},
+		{"with a dot", "{{secret.A.B}}", false},
+		{"lowercase", "{{secret.resend}}", false},
+		{"mixed case", "{{secret.Resend}}", false},
+		{"empty name", "{{secret.}}", false},
+		{"starts with a digit", "{{secret.1KEY}}", false},
+	}
+	for _, tc := range tests {
+		for place, mk := range map[string]func(string) Hook{
+			"header": func(r string) Hook { h := apiHook("https://x/y"); h.Headers = "Authorization: Bearer " + r; return h },
+			"url":    func(r string) Hook { return apiHook("https://x/y?k=" + r) },
+			"body":   func(r string) Hook { h := apiHook("https://x/y"); h.Headers = ""; h.Body = `"` + r + `"`; return h },
+		} {
+			t.Run(tc.name+" in the "+place, func(t *testing.T) {
+				_, err := svc.Create(ctx, mk(tc.ref))
+				if tc.ok && err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+				if !tc.ok && (err == nil || !strings.Contains(err.Error(), "capital letters")) {
+					t.Errorf("error = %v, want the secret-name message", err)
+				}
+			})
+		}
+	}
+}
+
+func TestOnce_RefusesToSendAnUnresolvedMarker(t *testing.T) {
+	var hits atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { hits.Add(1) }))
+	defer srv.Close()
+	svc, _ := newSvc(t, false)
+	stray := tokenOpen + "A.B" + tokenClose
+	tests := []struct {
+		name string
+		d    Delivery
+	}{
+		{"in the URL", Delivery{Method: "POST", URL: srv.URL + "/" + stray}},
+		{"in a header value", Delivery{Method: "POST", URL: srv.URL, Headers: [][2]string{{"X-Key", stray}}}},
+		{"in a header name", Delivery{Method: "POST", URL: srv.URL, Headers: [][2]string{{"X-" + tokenOpen, "v"}}}},
+		{"in the body", Delivery{Method: "POST", URL: srv.URL, Body: stray}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			code, err := svc.once(context.Background(), tc.d, "")
+			var stop noRetry
+			if err == nil || !errors.As(err, &stop) || code != 0 {
+				t.Errorf("once() = %d, %v; want a refusal that isn’t retried", code, err)
+			}
+			if strings.Contains(err.Error(), tokenOpen) {
+				t.Errorf("the refusal leaks the marker: %v", err)
+			}
+		})
+	}
+	if hits.Load() != 0 {
+		t.Errorf("the server was called %d times; nothing should have been sent", hits.Load())
 	}
 }

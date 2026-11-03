@@ -3,11 +3,15 @@ package hooks
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
+	"fmt"
 	"net/url"
 	"os"
 	"regexp"
 	"slices"
 	"strings"
+
+	"bitswarm/server/internal/redact"
 )
 
 const (
@@ -39,15 +43,68 @@ func secretToken(name string) string { return tokenOpen + name + tokenClose }
 
 func displaySecrets(s string) string { return tokenRe.ReplaceAllString(s, "{{secret.$1}}") }
 
+type noRetry interface{ noRetry() }
+
 type missingSecretError struct{ name string }
 
 func (e missingSecretError) Error() string {
 	return "the secret " + e.name + " isn’t set on the server. Set " + secretEnvPrefix + e.name + " (or " + secretEnvPrefix + e.name + "_FILE) and restart Bitswarm."
 }
 
+func (missingSecretError) noRetry() {}
+
+type unresolvedSecretError struct{}
+
+func (unresolvedSecretError) Error() string {
+	return "the request still has an unresolved secret reference, so it wasn’t sent. Check the secret names in the hook."
+}
+
+func (unresolvedSecretError) noRetry() {}
+
+func hasSecretRef(s string) bool {
+	for _, m := range placeholderRe.FindAllStringSubmatch(s, -1) {
+		if strings.HasPrefix(m[1], "secret.") {
+			return true
+		}
+	}
+	return false
+}
+
+func badSecretRef(s string) (string, bool) {
+	for _, m := range placeholderRe.FindAllStringSubmatch(s, -1) {
+		if name, ok := strings.CutPrefix(m[1], "secret."); ok && !secretNameRe.MatchString(name) {
+			return name, true
+		}
+	}
+	return "", false
+}
+
+func hasMarker(d Delivery) bool {
+	if strings.Contains(d.URL, tokenOpen) || strings.Contains(d.Body, tokenOpen) {
+		return true
+	}
+	for _, kv := range d.Headers {
+		if strings.Contains(kv[0], tokenOpen) || strings.Contains(kv[1], tokenOpen) {
+			return true
+		}
+	}
+	return false
+}
+
+func safeError(err error, sent Delivery) string {
+	var ue *url.Error
+	msg := ""
+	if errors.As(err, &ue) {
+		msg = fmt.Sprintf("%s %q: %v", ue.Op, redact.RawURL(displaySecrets(sent.URL)), ue.Err)
+	} else {
+		msg = redact.Err(err)
+	}
+	return scrubSecrets(msg, sent)
+}
+
 func IsSecretHeader(name string) bool { return secretHeaderRe.MatchString(strings.TrimSpace(name)) }
 
-func HasSecretRef(s string) bool { return secretRe.MatchString(s) }
+func HasSecretRef(s string) bool { return hasSecretRef(s) }
 
 func secretEnv(name string) (string, bool) {
 	if v := os.Getenv(secretEnvPrefix + name); v != "" {
@@ -139,13 +196,18 @@ func scrubSecrets(msg string, sent Delivery) string {
 		}
 		seen[name] = true
 		v, ok := secretEnv(name)
-		if !ok || len(v) < 3 {
+		if !ok {
 			continue
 		}
 		ref := "{{secret." + name + "}}"
-		msg = strings.ReplaceAll(msg, v, ref)
-		msg = strings.ReplaceAll(msg, url.QueryEscape(v), ref)
-		msg = strings.ReplaceAll(msg, url.PathEscape(v), ref)
+		for _, form := range []string{
+			v,
+			url.QueryEscape(v),
+			strings.ReplaceAll(url.QueryEscape(v), "+", "%20"),
+			url.PathEscape(v),
+		} {
+			msg = strings.ReplaceAll(msg, form, ref)
+		}
 	}
 	return msg
 }

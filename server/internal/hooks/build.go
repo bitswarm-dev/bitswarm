@@ -96,6 +96,9 @@ func Fill(tpl string, vars map[string]string, mode string) string {
 			if mode == "shell" {
 				return m
 			}
+			if !secretNameRe.MatchString(name) {
+				return ""
+			}
 			return secretToken(name)
 		}
 		val, ok := vars[k]

@@ -23,6 +23,27 @@ func URL(raw string) string {
 	return out
 }
 
+func RawURL(s string) string {
+	hadQuery := false
+	if i := strings.IndexAny(s, "?#"); i >= 0 {
+		s, hadQuery = s[:i], true
+	}
+	if i := strings.Index(s, "://"); i >= 0 {
+		auth, path := s[i+3:], ""
+		if j := strings.IndexByte(auth, '/'); j >= 0 {
+			auth, path = auth[:j], auth[j:]
+		}
+		if k := strings.LastIndexByte(auth, '@'); k >= 0 {
+			auth = auth[k+1:]
+		}
+		s = s[:i+3] + auth + path
+	}
+	if hadQuery {
+		s += "?…"
+	}
+	return s
+}
+
 func Err(err error) string {
 	if err == nil {
 		return ""

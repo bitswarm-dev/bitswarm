@@ -111,7 +111,7 @@ Notes:
 
 #### Keep keys out of the database
 
-Write `{{secret.NAME}}` anywhere in an API hook's URL, headers or body. When Bitswarm sends the request, it reads the value from the server's environment variable `SWARM_SECRET_NAME`, or from the file named by `SWARM_SECRET_NAME_FILE` (handy for Docker secrets). Names use capital letters, digits and underscores.
+Write `{{secret.NAME}}` anywhere in an API hook's URL, headers or body. When Bitswarm sends the request, it reads the value from the server's environment variable `SWARM_SECRET_NAME`, or from the file named by `SWARM_SECRET_NAME_FILE` (handy for Docker secrets). Names use capital letters, digits and underscores, and start with a letter.
 
 - The value is never saved with the hook. The editor, the API, the delivery history, the logs and backups only ever show `{{secret.NAME}}`.
 - If the variable isn't set, the hook doesn't send and says which one is missing. The editor warns you too.
