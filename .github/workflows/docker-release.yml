@@ -1,0 +1,136 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+env:
+  RELEASE_TAG: ${{ github.event.release.tag_name }}
+  PRERELEASE: ${{ github.event.release.prerelease }}
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        component: [server, web]
+        platform: [linux/amd64, linux/arm64, linux/arm/v7, linux/386]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - id: v
+        run: |
+          set -eu
+          printf '%s' "$RELEASE_TAG" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$' || { echo "Release tag must look like v1.2.3"; exit 1; }
+          version="${RELEASE_TAG#v}"
+          suffix="${{ matrix.platform }}"
+          suffix="${suffix#linux/}"
+          suffix="${suffix//\//-}"
+          tags="dockerkeithics/bitswarm-${{ matrix.component }}:${version}-${suffix}"
+          if [ "$PRERELEASE" != "true" ]; then
+            tags="${tags},dockerkeithics/bitswarm-${{ matrix.component }}:latest-${suffix}"
+          fi
+          echo "tags=${tags}" >> "$GITHUB_OUTPUT"
+          if [ "${{ matrix.component }}" = "server" ]; then echo "context=./server" >> "$GITHUB_OUTPUT"; else echo "context=./dashboard" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: ${{ steps.v.outputs.context }}
+          platforms: ${{ matrix.platform }}
+          push: true
+          provenance: false
+          tags: ${{ steps.v.outputs.tags }}
+          cache-from: type=gha,scope=${{ matrix.component }}-${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.component }}-${{ matrix.platform }}
+
+  manifest:
+    needs: images
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        component: [server, web]
+    steps:
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - run: |
+          set -eu
+          printf '%s' "$RELEASE_TAG" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$'
+          version="${RELEASE_TAG#v}"
+          image="dockerkeithics/bitswarm-${{ matrix.component }}"
+          suffixes="amd64 arm64 arm-v7 386"
+          sources=""
+          for s in $suffixes; do sources="$sources ${image}:${version}-${s}"; done
+          docker buildx imagetools create -t "${image}:${version}" $sources
+          if [ "$PRERELEASE" != "true" ]; then
+            sources=""
+            for s in $suffixes; do sources="$sources ${image}:latest-${s}"; done
+            docker buildx imagetools create -t "${image}:latest" $sources
+          fi
+
+  binaries:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version-file: server/go.mod
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          printf '%s' "$RELEASE_TAG" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$'
+          version="${RELEASE_TAG#v}"
+          out="$PWD/out"
+          mkdir -p "$out" build
+          for t in linux/amd64 linux/arm64 linux/arm/7 linux/386 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64; do
+            os="${t%%/*}"
+            rest="${t#*/}"
+            arch="${rest%%/*}"
+            arm=""
+            label="$arch"
+            if [ "$arch" = "arm" ]; then arm="${rest#arm/}"; label="armv${arm}"; fi
+            name="bitswarm-server_${version}_${os}_${label}"
+            bin="swarm"
+            if [ "$os" = "windows" ]; then bin="swarm.exe"; fi
+            rm -rf "build/$name"
+            mkdir -p "build/$name"
+            (cd server && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" GOARM="$arm" go build -trimpath -ldflags="-s -w" -o "../build/$name/$bin" ./cmd/server)
+            cp README.md LICENSE THIRD_PARTY_NOTICES.md "build/$name/"
+            if [ "$os" = "windows" ]; then
+              (cd build && zip -qr "$out/$name.zip" "$name")
+            else
+              tar -C build -czf "$out/$name.tar.gz" "$name"
+            fi
+          done
+          (cd dashboard && npm ci && npx vite build)
+          tar -C dashboard/dist -czf "$out/bitswarm-dashboard_${version}.tar.gz" .
+          (cd "$out" && sha256sum * > SHA256SUMS)
+          gh release upload "$RELEASE_TAG" "$out"/* --clobber

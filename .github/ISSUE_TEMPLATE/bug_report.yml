@@ -1,0 +1,70 @@
+name: Bug report
+description: Something doesn't work the way it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check the "Not supported yet" list in the README first. Those items are known gaps, not bugs.
+        Don't paste passwords, API tokens or signing secrets.
+  - type: input
+    id: version
+    attributes:
+      label: Bitswarm version
+      description: Shown in About, for example 0.9.0.
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How you run it
+      options:
+        - Docker Compose
+        - Release binary
+        - From source (run.sh)
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Operating system and CPU
+      placeholder: Debian 12 on amd64
+    validations:
+      required: true
+  - type: dropdown
+    id: demo
+    attributes:
+      label: Demo mode
+      description: Demo mode uses a simulated engine.
+      options:
+        - "No, real engine"
+        - "Yes, SWARM_DEMO=1"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log lines
+      description: From the Execution log page or `docker compose logs server`.
+      render: text
