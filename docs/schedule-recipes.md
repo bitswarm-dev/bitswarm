@@ -100,7 +100,7 @@ Many release groups name files like `[Group] Some Show - 06 (1080p) [019F4E4B].m
 
 | Field | Value |
 |---|---|
-| Find (regex) | `^\[[^\]]+\] (.+?) - (.+?) \(\w+\) \[[0-9A-Fa-f]+\]$` |
+| Find (regex) | `^\[.+?\] (.+?) - (.+?) \(.+?\) \[.+?\]$` |
 | Replace with | `$1/$1 - $2` |
 | Keep the file extension | on |
 | Rename | File names |
@@ -110,7 +110,8 @@ That turns `[Group] Some Show - 06 (1080p) [019F4E4B].mkv` into `Some Show/Some 
 
 - With **Keep the file extension** on, the pattern is tested against the name without `.mkv`, so end it with the closing `]` and don't put the extension in it.
 - Bitswarm uses Go's regular expression syntax: no lookahead and no backreferences.
-- `\w+` matches both `1080p` and a plain number such as `100`. If you write `\d\d` instead, a three-digit number won't match.
+- Every part is `.+?`, which matches any text, so it works whatever the group tag, the quality in the parentheses or the hash in the last brackets looks like (`(1080p)`, `(720p HEVC)`, `(100)`, `[019F4E4B]`, `[Hash_01]`). Strict patterns such as `\d\d` or `[0-9A-F]+` stop matching when a name differs a little.
+- The first group is the title and the second is the episode or number, so `Some Show - 06` gives `Some Show/Some Show - 06`. A title that itself contains ` - ` is split at the first one.
 - Paste a few real names into **Test your regex** before saving. It shows the result for each one, or "No match".
 - A file that already has the new name is numbered, like `Some Show - 06 (2).mkv`, and never overwritten.
 
