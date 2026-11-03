@@ -1,15 +1,18 @@
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { getContents, getStats, listTorrents, type ContentsParams } from "./api";
 
 export const torrentsKey = ["torrents"] as const;
 export const statsKey = ["stats"] as const;
 
+export const torrentsQuery = queryOptions({ queryKey: torrentsKey, queryFn: listTorrents, refetchInterval: 1000 });
+export const statsQuery = queryOptions({ queryKey: statsKey, queryFn: getStats, refetchInterval: 1000 });
+
 export function useTorrents() {
-  return useSuspenseQuery({ queryKey: torrentsKey, queryFn: listTorrents, refetchInterval: 1000 });
+  return useSuspenseQuery(torrentsQuery);
 }
 
 export function useStats() {
-  return useSuspenseQuery({ queryKey: statsKey, queryFn: getStats, refetchInterval: 1000 });
+  return useSuspenseQuery(statsQuery);
 }
 
 export function useContents(params: ContentsParams | null) {

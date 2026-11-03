@@ -214,7 +214,7 @@ run.sh              starts the server and the dashboard
 docker-compose.yml  runs the published images (docker-compose.build.yml builds them from source)
 CLAUDE.md           rules for people and AI agents working on the code
 server/             Go service: Fiber, SQLite, built-in BitTorrent engine
-dashboard/          React 18, TypeScript, Vite, TanStack Query
+dashboard/          React 18, TypeScript, Vite, TanStack Router and Query
 ```
 
 Read [`CLAUDE.md`](./CLAUDE.md) first. It has the conventions, the event catalog and the design rules. Before you open a pull request, make sure these pass:

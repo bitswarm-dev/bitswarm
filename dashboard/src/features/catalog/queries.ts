@@ -1,10 +1,12 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { getCatalog, getTagUsage } from "./api";
 
 export const catalogKey = ["catalog"] as const;
 
+export const catalogQuery = queryOptions({ queryKey: catalogKey, queryFn: getCatalog, refetchInterval: 5000 });
+
 export function useCatalog() {
-  return useSuspenseQuery({ queryKey: catalogKey, queryFn: getCatalog, refetchInterval: 5000 });
+  return useSuspenseQuery(catalogQuery);
 }
 
 export function useTagUsage() {

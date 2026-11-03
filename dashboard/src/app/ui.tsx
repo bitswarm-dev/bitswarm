@@ -6,14 +6,8 @@ export type Tab = "general" | "files" | "peers" | "trackers" | "speed";
 export type GroupKey = "status" | "automation" | "tags" | "developer";
 
 interface UiState {
-  filter: string;
-  tag: string | null;
-  q: string;
-  sort: { key: SortKey; dir: 1 | -1 };
   sel: number[];
-  active: number | null;
   anchor: number | null;
-  tab: Tab;
   settingsDirty: boolean;
   logSeen: number;
   hooksAck: boolean;
@@ -30,14 +24,8 @@ const UiContext = createContext<UiCtx | null>(null);
 
 export function UiProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<UiState>(() => ({
-    filter: "all",
-    tag: null,
-    q: "",
-    sort: { key: "added", dir: -1 },
     sel: [],
-    active: null,
     anchor: null,
-    tab: "general",
     settingsDirty: false,
     logSeen: Date.now(),
     hooksAck: false,

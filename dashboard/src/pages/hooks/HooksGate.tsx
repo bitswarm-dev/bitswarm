@@ -1,12 +1,12 @@
 import { useState, type FormEvent, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@tanstack/react-router";
 import { useUi } from "@/app/ui";
 import { readFlag, writeFlag } from "@/app/storage";
 import { Modal } from "@/components/Modal/Modal";
 
 export function HooksGate({ children }: { children: ReactNode }) {
   const ui = useUi();
-  const nav = useNavigate();
+  const navigate = useNavigate();
   const [ok, setOk] = useState(false);
   const [never, setNever] = useState(false);
   const acked = ui.hooksAck || readFlag("swarm-hooks-ack");
@@ -25,7 +25,7 @@ export function HooksGate({ children }: { children: ReactNode }) {
       title="Hooks are for advanced users"
       alert
       width="540px"
-      onClose={() => nav("/")}
+      onClose={() => void navigate({ to: "/" })}
       head={
         <header className="ack-head">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" strokeWidth="2" strokeLinejoin="round">
@@ -52,7 +52,7 @@ export function HooksGate({ children }: { children: ReactNode }) {
         <label className="check"><input type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} /> I understand the risks and I’m responsible for the hooks I set up</label>
         <label className="check"><input type="checkbox" checked={never} onChange={(e) => setNever(e.target.checked)} /> Don’t ask me again</label>
         <div className="actions">
-          <button type="button" className="btn" onClick={() => nav("/")}>Go back</button>
+          <button type="button" className="btn" onClick={() => void navigate({ to: "/" })}>Go back</button>
           <button type="submit" className="btn primary" disabled={!ok}>Continue to hooks</button>
         </div>
       </form>

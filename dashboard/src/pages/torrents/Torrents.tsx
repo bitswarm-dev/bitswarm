@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useActiveId, useListView } from "@/app/listView";
 import { useUi } from "@/app/ui";
 import { MenuWrap } from "@/components/Menu/MenuWrap";
 import { Svg } from "@/components/Icons/Svg";
@@ -8,6 +9,7 @@ import { useSetAlt } from "@/features/torrents/mutations";
 import { useStats, useTorrents } from "@/features/torrents/queries";
 import { useSettings } from "@/features/settings/queries";
 import { formatKib } from "@/utils/format";
+import { useUrlText } from "@/utils/useUrlText";
 import { AddTorrentDialog } from "./AddTorrentDialog";
 import { ContextMenu } from "./ContextMenu";
 import { Inspector } from "./Inspector";
@@ -20,6 +22,8 @@ type MenuKind = "tags" | "rename";
 
 export function Torrents() {
   const ui = useUi();
+  const view = useListView();
+  const currentId = useActiveId();
   const { data: torrents } = useTorrents();
   const { data: stats } = useStats();
   const { data: set } = useSettings();
@@ -33,31 +37,33 @@ export function Torrents() {
   const [ctx, setCtx] = useState<{ x: number; y: number } | null>(null);
   const [option, setOption] = useState<"move" | "limits" | null>(null);
   const [openMenu, setOpenMenu] = useState<MenuKind | null>(null);
+  const [qText, setQText] = useUrlText(view.q, (q) => view.go({ q }, { replace: true }));
 
   const rows = useMemo(
-    () => visibleTorrents(torrents, { filter: ui.filter, tag: ui.tag, q: ui.q, sort: ui.sort }),
-    [torrents, ui.filter, ui.tag, ui.q, ui.sort],
+    () => visibleTorrents(torrents, { filter: view.filter, tag: view.tag, q: view.q, sort: view.sort }),
+    [torrents, view.filter, view.tag, view.q, view.sort.key, view.sort.dir], // eslint-disable-line react-hooks/exhaustive-deps
   );
   const known = new Set(torrents.map((t) => t.id));
   const selIds = ui.sel.filter((id) => known.has(id));
   const selection = torrents.filter((t) => selIds.includes(t.id));
-  const active = torrents.find((t) => t.id === ui.active) ?? null;
+  const active = torrents.find((t) => t.id === currentId) ?? null;
 
   useEffect(() => {
-    if (ui.active === null && torrents.length > 0 && ui.sel.length === 0) {
-      ui.patch({ sel: [torrents[0].id], active: torrents[0].id, anchor: torrents[0].id });
-    }
-  }, [ui, torrents]);
+    if (torrents.length === 0 || ui.sel.length > 0) return;
+    const id = view.active !== null && known.has(view.active) ? view.active : torrents[0].id;
+    ui.patch({ sel: [id], anchor: id });
+  }, [ui, torrents]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const select = (ids: number[], activeId: number | null, anchor: number | null) => {
     setConfirming(false);
-    ui.patch({ sel: ids, active: activeId, anchor });
+    ui.patch({ sel: ids, anchor });
+    view.go({ active: activeId }, { replace: true });
   };
 
   const toggle = (id: number) => {
     const has = ui.sel.includes(id);
     const sel = has ? ui.sel.filter((x) => x !== id) : [...ui.sel, id];
-    select(sel, has ? ui.active : id, id);
+    select(sel, has ? currentId : id, id);
   };
 
   const ids = selection.map((t) => t.id);
@@ -75,13 +81,14 @@ export function Torrents() {
     run({ action: "remove", ids, deleteData }, () => {
       setConfirming(false);
       setDeleteData(false);
-      ui.patch({ sel: [], active: null, anchor: null });
+      ui.patch({ sel: [], anchor: null });
+      view.go({ active: null }, { replace: true });
     });
   };
 
   const openContext = (x: number, y: number, id: number) => {
     if (!ui.sel.includes(id)) select([id], id, id);
-    else ui.patch({ active: id });
+    else view.go({ active: id }, { replace: true });
     setCtx({ x, y });
   };
 
@@ -100,7 +107,7 @@ export function Torrents() {
       } else if (e.key === " " && n) {
         e.preventDefault();
         toggleRun();
-        document.querySelector<HTMLElement>(`.row[data-id="${ui.active}"]`)?.focus();
+        document.querySelector<HTMLElement>(`.row[data-id="${currentId}"]`)?.focus();
       }
     };
     document.addEventListener("keydown", onKey);
@@ -117,7 +124,7 @@ export function Torrents() {
           </button>
           <label className="search">
             <Svg size={15}><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></Svg>
-            <input type="search" placeholder="Search torrents" aria-label="Search torrents" value={ui.q} onChange={(e) => ui.patch({ q: e.target.value })} />
+            <input type="search" placeholder="Search torrents" aria-label="Search torrents" value={qText} onChange={(e) => setQText(e.target.value)} />
           </label>
           <span className="sep" />
           <button className="btn" disabled={!canResume} title="Resume (Space)" onClick={() => run({ action: "resume", ids })}>
@@ -184,9 +191,9 @@ export function Torrents() {
               <>
                 <b className="num">{n}</b>selected
                 {rows.some((t) => !ui.sel.includes(t.id)) && (
-                  <button className="btn" onClick={() => select(rows.map((t) => t.id), ui.active ?? rows[0]?.id ?? null, ui.anchor)}>Select all</button>
+                  <button className="btn" onClick={() => select(rows.map((t) => t.id), currentId ?? rows[0]?.id ?? null, ui.anchor)}>Select all</button>
                 )}
-                <button className="btn" onClick={() => select([], ui.active, ui.anchor)}>Clear</button>
+                <button className="btn" onClick={() => select([], currentId, ui.anchor)}>Clear</button>
               </>
             ) : (
               rows.length > 0 && <button className="btn" onClick={() => select(rows.map((t) => t.id), rows[0].id, rows[0].id)}>Select all</button>
@@ -230,9 +237,12 @@ export function Torrents() {
 
       {adding && (
         <AddTorrentDialog
-          defaultTag={ui.tag}
+          defaultTag={view.tag}
           onClose={() => setAdding(false)}
-          onAdded={(id) => ui.patch({ sel: [id], active: id, anchor: id, filter: "all" })}
+          onAdded={(id) => {
+            ui.patch({ sel: [id], anchor: id });
+            view.go({ active: id, filter: "all" }, { replace: true });
+          }}
         />
       )}
       {ctx && n > 0 && (

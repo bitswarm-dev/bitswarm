@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "@tanstack/react-router";
 import { useToast } from "@/components/Toasts/Toasts";
 import { useCatalog } from "@/features/catalog/queries";
 import { useApplyPreset } from "@/features/renames/mutations";
@@ -71,7 +71,7 @@ export function TagMenu({ selection }: Omit<Props, "close">) {
 }
 
 export function RenameMenu({ selection, close }: Props) {
-  const nav = useNavigate();
+  const navigate = useNavigate();
   const toast = useToast();
   const { data: presets } = useRenames();
   const apply = useApplyPreset();
@@ -106,7 +106,7 @@ export function RenameMenu({ selection, close }: Props) {
         role="menuitem"
         onClick={() => {
           close();
-          nav("/renames");
+          void navigate({ to: "/renames" });
         }}
       >
         <span>Manage presets…</span>

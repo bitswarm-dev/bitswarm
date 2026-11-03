@@ -1,12 +1,15 @@
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { listTasks, maintenanceLog, previewTask } from "./api";
 
+export const tasksQuery = queryOptions({ queryKey: ["maintenance"], queryFn: listTasks, refetchInterval: 3000 });
+export const maintenanceLogQuery = queryOptions({ queryKey: ["maintenance", "log"], queryFn: maintenanceLog, refetchInterval: 3000 });
+
 export function useTasks() {
-  return useSuspenseQuery({ queryKey: ["maintenance"], queryFn: listTasks, refetchInterval: 3000 });
+  return useSuspenseQuery(tasksQuery);
 }
 
 export function useMaintenanceLog() {
-  return useSuspenseQuery({ queryKey: ["maintenance", "log"], queryFn: maintenanceLog, refetchInterval: 3000 });
+  return useSuspenseQuery(maintenanceLogQuery);
 }
 
 export function useTaskPreview(id: number | null) {
