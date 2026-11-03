@@ -1,19 +1,19 @@
-<p align="center"><img src="docs/logo/bitswarm-logo.svg" alt="Bitswarm logo" width="96"></p>
+<p align="center"><img src="docs/logo/bitswarm-logo.svg" alt="BitSwarm logo" width="96"></p>
 
-# Bitswarm
+# BitSwarm
 
 [![Release](https://img.shields.io/github/v/release/bitswarm-dev/bitswarm)](https://github.com/bitswarm-dev/bitswarm/releases)
 [![Docker pulls](https://img.shields.io/docker/pulls/dockerkeithics/bitswarm-server?label=docker%20pulls)](https://hub.docker.com/r/dockerkeithics/bitswarm-server)
 [![Platforms](https://img.shields.io/badge/platforms-amd64%20%7C%20arm64%20%7C%20arm%2Fv7%20%7C%20386-blue)](https://hub.docker.com/r/dockerkeithics/bitswarm-server/tags)
 
-Bitswarm is a programmable BitTorrent client with a web interface. Most clients stop once the download finishes: finding new releases, fixing messy file names, sorting files into folders and telling you when something is done are left to you, or to a pile of scripts. Bitswarm makes those steps part of the client.
+BitSwarm is a programmable BitTorrent client with a web interface. Most clients stop once the download finishes: finding new releases, fixing messy file names, sorting files into folders and telling you when something is done are left to you, or to a pile of scripts. BitSwarm makes those steps part of the client.
 
 - **Schedule it:** search websites on a timer and add what's new.
 - **Organize it:** rename files with regex rules and move them into folders, so your library stays tidy on its own.
 - **Hook it up:** call an API or run a command at every step, from added to finished to failed. Send an email, ping a chat, refresh your media server.
-- **Script it:** use API tokens to control Bitswarm from your own code.
+- **Script it:** use API tokens to control BitSwarm from your own code.
 
-> Bitswarm is a general-purpose BitTorrent client. It isn't built for piracy, and it doesn't provide, host or index content. Only download and share what you have the right to. You are responsible for following your local laws. This is not legal advice, and the authors aren't liable for how you use it.
+> BitSwarm is a general-purpose BitTorrent client. It isn't built for piracy, and it doesn't provide, host or index content. Only download and share what you have the right to. You are responsible for following your local laws. This is not legal advice, and the authors aren't liable for how you use it.
 
 ## Contents
 
@@ -33,7 +33,7 @@ Captured in demo mode, which uses a simulated engine with sample torrents.
 
 | Dark | Light |
 |---|---|
-| <img src="docs/screenshots/desktop-dark.png" alt="Bitswarm torrent list in the dark theme"> | <img src="docs/screenshots/desktop-light.png" alt="Bitswarm torrent list in the light theme"> |
+| <img src="docs/screenshots/desktop-dark.png" alt="BitSwarm torrent list in the dark theme"> | <img src="docs/screenshots/desktop-light.png" alt="BitSwarm torrent list in the light theme"> |
 
 ## Automation
 
@@ -41,7 +41,7 @@ Captured in demo mode, which uses a simulated engine with sample torrents.
 
 A schedule searches a website on a timer, reads the magnet or `.torrent` links out of the results with a CSS selector, filters them by name, and adds anything new. It can tag what it adds, apply a rename preset and use your default save folder.
 
-<img src="docs/screenshots/scheduled-dark.png" alt="Bitswarm scheduled downloads page in the dark theme">
+<img src="docs/screenshots/scheduled-dark.png" alt="BitSwarm scheduled downloads page in the dark theme">
 
 Copy-paste settings for a distribution's download page, a search with a list of terms and a rename preset are in [Scheduled download recipes](docs/schedule-recipes.md).
 
@@ -49,15 +49,15 @@ Copy-paste settings for a distribution's download page, a search with a list of 
 
 A preset finds part of a name with a regular expression and replaces it. It can run on every finished download that matches a tag, from a schedule, or by hand with a live preview and undo. For files, a `/` in the replacement moves the file into that folder, which is created if it's missing. Regular expressions use Go syntax.
 
-<img src="docs/screenshots/auto-rename.png" alt="Bitswarm auto rename page with three presets">
+<img src="docs/screenshots/auto-rename.png" alt="BitSwarm auto rename page with three presets">
 
 ### Hooks
 
-A hook runs when something happens in Bitswarm. Pick the events, pick what to do, and use placeholders such as `{{torrent.name}}`, `{{torrent.path}}` and `{{torrent.size}}` to pass details along.
+A hook runs when something happens in BitSwarm. Pick the events, pick what to do, and use placeholders such as `{{torrent.name}}`, `{{torrent.path}}` and `{{torrent.size}}` to pass details along.
 
 - **Events:** torrent added, metadata received, resumed, paused, download finished, error, removed, renamed, tags changed and files moved. Also schedule search, links found and run finished, and maintenance task ran, settings saved and update available. A hook can be limited to one tag.
 - **Call an API:** send a request to any URL, with your own method, headers and body. Requests are retried when the other side fails. With a signing secret they carry an `X-Swarm-Signature` header, an HMAC-SHA256 of the body, so the receiver can check where they came from.
-- **Run a command:** run a script on the machine where Bitswarm runs. It gets the event as environment variables and, if you want, as JSON on its standard input. Placeholder values are quoted for the shell automatically, so a torrent named `x'; rm -rf ~ #` arrives as one plain argument. Command hooks are off until you start the server with `SWARM_ALLOW_COMMANDS=1`, and in Docker they run inside the server container.
+- **Run a command:** run a script on the machine where BitSwarm runs. It gets the event as environment variables and, if you want, as JSON on its standard input. Placeholder values are quoted for the shell automatically, so a torrent named `x'; rm -rf ~ #` arrives as one plain argument. Command hooks are off until you start the server with `SWARM_ALLOW_COMMANDS=1`, and in Docker they run inside the server container.
 - **Run curl:** start the real `curl` program with a command you write, such as `curl -sf -X POST https://example.org/hook --data-urlencode name={{torrent.name}}`. The editor starts with a template. It follows the same rules as a command hook: placeholders are single-quoted, it needs `SWARM_ALLOW_COMMANDS=1`, and the Docker image includes curl. Torrent names are chosen by other people, and curl treats some values as files or options, so a curl hook only saves if every placeholder comes right after an equals sign (`name={{torrent.name}}`), sits inside a URL or a `-H` header value, or is `{{payload}}`. `-F` and `--form` are refused. Values that start with `-`, `@` or `<` also get a leading space. It can't use `{{secret.NAME}}`.
 - **Test before you trust it:** every hook has a Send test button and a preview of the exact request. Recent deliveries are listed on the Hooks page, with their status, so you can see what was sent, or "Not sent" and "Not run" when it wasn't.
 
@@ -84,16 +84,16 @@ Content-Type: application/json
 Authorization: Bearer {{secret.RESEND_KEY}}
 ```
 
-`{{secret.RESEND_KEY}}` keeps your API key out of Bitswarm's database. See [Keep keys out of the database](#keep-keys-out-of-the-database) below for how to set it.
+`{{secret.RESEND_KEY}}` keeps your API key out of BitSwarm's database. See [Keep keys out of the database](#keep-keys-out-of-the-database) below for how to set it.
 
 **Email: download started.** Tick the event **Added**, and use this body:
 
 ```json
 {
-  "from": "Bitswarm <bitswarm@yourdomain.com>",
+  "from": "BitSwarm <bitswarm@yourdomain.com>",
   "to": ["you@example.com"],
   "subject": "Started: {{torrent.name}}",
-  "text": "Bitswarm started {{torrent.name}} ({{torrent.size}}). It will be saved to {{torrent.path}}."
+  "text": "BitSwarm started {{torrent.name}} ({{torrent.size}}). It will be saved to {{torrent.path}}."
 }
 ```
 
@@ -101,7 +101,7 @@ Authorization: Bearer {{secret.RESEND_KEY}}
 
 ```json
 {
-  "from": "Bitswarm <bitswarm@yourdomain.com>",
+  "from": "BitSwarm <bitswarm@yourdomain.com>",
   "to": ["you@example.com"],
   "subject": "Finished: {{torrent.name}}",
   "text": "{{torrent.name}} ({{torrent.size}}) finished downloading and is in {{torrent.path}}. Share ratio {{torrent.ratio}}."
@@ -119,7 +119,7 @@ Notes:
 
 #### Keep keys out of the database
 
-Write `{{secret.NAME}}` anywhere in an API hook's URL, headers or body. When Bitswarm sends the request, it reads the value from the server's environment variable `SWARM_SECRET_NAME`, or from the file named by `SWARM_SECRET_NAME_FILE` (handy for Docker secrets). Names use capital letters, digits and underscores, and start with a letter.
+Write `{{secret.NAME}}` anywhere in an API hook's URL, headers or body. When BitSwarm sends the request, it reads the value from the server's environment variable `SWARM_SECRET_NAME`, or from the file named by `SWARM_SECRET_NAME_FILE` (handy for Docker secrets). Names use capital letters, digits and underscores, and start with a letter.
 
 - The value is never saved with the hook. The editor, the API, the delivery history, the logs and backups only ever show `{{secret.NAME}}`.
 - If the variable isn't set, the hook doesn't send and says which one is missing. The editor warns you too.
@@ -138,7 +138,7 @@ services:
       SWARM_SECRET_RESEND_KEY: ${SWARM_SECRET_RESEND_KEY}
 ```
 
-Then run `docker compose up -d`. If you type a key straight into a header instead, Bitswarm hides it in the editor and the API after you save, but it is still stored as plain text in the database file. Use `{{secret.NAME}}` when you can.
+Then run `docker compose up -d`. If you type a key straight into a header instead, BitSwarm hides it in the editor and the API after you save, but it is still stored as plain text in the database file. Use `{{secret.NAME}}` when you can.
 
 ### API tokens
 
@@ -176,7 +176,7 @@ The images [`dockerkeithics/bitswarm-server`](https://hub.docker.com/r/dockerkei
 
 - **Sign-in is always required** in Docker, because the server sees nginx as the client and not localhost.
 - **The web port is bound to `127.0.0.1` by default.** To reach it from other machines, set `SWARM_BIND=0.0.0.0` and put it behind HTTPS.
-- **Data:** the database and engine state live in `./data` (change it with `SWARM_DATA_DIR`). Downloads go to `./downloads` (change it with `SWARM_DOWNLOADS_DIR`). Both folders must be writable by user ID 10001, which is what the `chown` step does. Without it, Docker creates them owned by root and the server can't start on Linux. Docker Desktop on macOS and Windows doesn't need the `chown`. Don't open the folders up with `chmod 777`: the data folder holds your database, and Bitswarm makes the database file readable by its owner only. To back it up, use Settings → Backup, or copy it with `sudo`.
+- **Data:** the database and engine state live in `./data` (change it with `SWARM_DATA_DIR`). Downloads go to `./downloads` (change it with `SWARM_DOWNLOADS_DIR`). Both folders must be writable by user ID 10001, which is what the `chown` step does. Without it, Docker creates them owned by root and the server can't start on Linux. Docker Desktop on macOS and Windows doesn't need the `chown`. Don't open the folders up with `chmod 777`: the data folder holds your database, and BitSwarm makes the database file readable by its owner only. To back it up, use Settings → Backup, or copy it with `sudo`.
 - **Peers:** port 51413 (TCP and UDP) is published for peer connections. If that port is taken, set `SWARM_PEER_PORT` (for example `51414`), set the same listening port in Settings, and restart. The host and container ports must match so peers can reach you. UPnP can't open ports from inside a container, so forward the port on your router if you need incoming connections.
 - **Versions:** the compose file pulls the latest stable release. To pin a version, set `SWARM_VERSION` (for example `SWARM_VERSION=0.9.1`) and run `docker compose pull && docker compose up -d` to update. Each release also has a `docker-compose.yml` already pinned to its version. Per-platform tags such as `0.9.1-amd64` exist too.
 - **Other options** (set in your shell or a `.env` file): `SWARM_WEB_PORT` (default 8080), `SWARM_PEER_PORT` (default 51413), `SWARM_DATA_DIR`, `SWARM_DOWNLOADS_DIR`, `SWARM_DEMO`, `SWARM_ALLOW_COMMANDS`, `SWARM_UPDATE_FEED`, `LOG_LEVEL`. Commands run by hooks would run inside the server container.
@@ -263,14 +263,14 @@ UI changes also need a check in a real browser, in light and dark themes, at des
 
 ## Security
 
-Bitswarm can run commands and call URLs through hooks, so treat access to it like shell access to the host. Change the default password, keep the port on localhost or behind HTTPS, and leave command hooks off unless you need them.
+BitSwarm can run commands and call URLs through hooks, so treat access to it like shell access to the host. Change the default password, keep the port on localhost or behind HTTPS, and leave command hooks off unless you need them.
 
 How secrets are handled:
 
 - **Web password:** stored only as a PBKDF2-SHA256 hash with a random salt.
 - **API tokens:** shown once when you create them. Only a SHA-256 hash and the last 4 characters are kept.
 - **API keys for hooks:** use `{{secret.NAME}}` so the key lives in the server's environment and never in the database. A key typed into a header such as `Authorization` or `X-Api-Key` is hidden in the editor, the API and the delivery history after you save, but it is stored as plain text in the database file.
-- **Hook signing secrets:** stored, because Bitswarm needs them to sign, but never sent back to the browser.
+- **Hook signing secrets:** stored, because BitSwarm needs them to sign, but never sent back to the browser.
 - **The database file:** readable by its owner only (`0600`).
 - **Backups:** secrets are left out unless you tick "include secrets". Real keys in secret-looking headers (`Authorization`, `X-Api-Key`, `Cookie` and similar) are blanked, and `{{secret.NAME}}` references are kept.
 - **Errors and logs:** addresses are shown without their query string, so a key in `?apikey=…` doesn't end up in the log.
@@ -280,8 +280,8 @@ To report a vulnerability, open a private security advisory on the GitHub reposi
 
 ## License
 
-Bitswarm is licensed under the [PolyForm Noncommercial License 1.0.0](./LICENSE). You can use it, change it and share it for free for any noncommercial purpose: personal use, hobby projects, research and study, and use by charities, schools and public institutions. You can't sell it or use it for commercial purposes, including running it inside a for-profit business.
+BitSwarm is licensed under the [PolyForm Noncommercial License 1.0.0](./LICENSE). You can use it, change it and share it for free for any noncommercial purpose: personal use, hobby projects, research and study, and use by charities, schools and public institutions. You can't sell it or use it for commercial purposes, including running it inside a for-profit business.
 
-This is a source-available license, not an OSI-approved open source license, because it limits commercial use. If you want to use Bitswarm commercially, open an issue to ask.
+This is a source-available license, not an OSI-approved open source license, because it limits commercial use. If you want to use BitSwarm commercially, open an issue to ask.
 
 Third-party libraries keep their own licenses. They are listed in [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md), which also ships in the release downloads.

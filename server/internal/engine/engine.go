@@ -362,7 +362,7 @@ func (e *Engine) metaPath(hash string) string { return filepath.Join(e.metaDir, 
 
 func (e *Engine) start(en *entry, spec *torrent.TorrentSpec) error {
 	if err := os.MkdirAll(en.dir, 0o755); err != nil {
-		return torrents.Invalid("Bitswarm can’t use the folder " + en.dir + ": " + err.Error())
+		return torrents.Invalid("BitSwarm can’t use the folder " + en.dir + ": " + err.Error())
 	}
 	spec.Storage = e.storageFor(en)
 	t, _, err := e.cl.AddTorrentSpec(spec)

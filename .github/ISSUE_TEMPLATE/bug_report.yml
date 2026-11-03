@@ -10,7 +10,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: Bitswarm version
+      label: BitSwarm version
       description: Shown in About, for example 0.9.0.
     validations:
       required: true

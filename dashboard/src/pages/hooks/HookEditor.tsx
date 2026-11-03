@@ -67,7 +67,7 @@ export function HookEditor({ hook, onClose, onSaved }: Props) {
   };
 
   return (
-    <Modal title={hook ? "Edit hook" : "New hook"} subtitle="Call an API, run a command or run curl whenever something happens in Bitswarm." wide onClose={onClose}>
+    <Modal title={hook ? "Edit hook" : "New hook"} subtitle="Call an API, run a command or run curl whenever something happens in BitSwarm." wide onClose={onClose}>
       <form onSubmit={submit} noValidate>
         <fieldset className="step">
           <legend><span className="sn">1</span>What to do</legend>
@@ -105,7 +105,7 @@ export function HookEditor({ hook, onClose, onSaved }: Props) {
               <label className="field">
                 <span>{curl ? "curl command" : "Command"}</span>
                 <textarea ref={refs.cmd} rows={curl ? 5 : 2} value={form.cmd} onFocus={() => (last.current = "cmd")} onChange={(e) => set("cmd", e.target.value)} spellCheck={false} placeholder={curl ? CURL_TEMPLATE : "/home/me/scripts/done.sh {{torrent.path}} {{torrent.name}}"} />
-                <small>{curl ? <>Starts the real curl program on the machine where Bitswarm runs, with Bitswarm’s permissions, so curl must be installed there. Placeholder values are quoted for the shell automatically, so don’t put quotes around them. Each placeholder has to come right after an equals sign, such as <code>name={"{{torrent.name}}"}</code>, or sit in a URL or a <code>-H</code> value.</> : "Runs on the machine where Bitswarm runs, with Bitswarm’s permissions. Placeholder values are quoted for the shell automatically, so don’t put quotes around them."}</small>
+                <small>{curl ? <>Starts the real curl program on the machine where BitSwarm runs, with BitSwarm’s permissions, so curl must be installed there. Placeholder values are quoted for the shell automatically, so don’t put quotes around them. Each placeholder has to come right after an equals sign, such as <code>name={"{{torrent.name}}"}</code>, or sit in a URL or a <code>-H</code> value.</> : "Runs on the machine where BitSwarm runs, with BitSwarm’s permissions. Placeholder values are quoted for the shell automatically, so don’t put quotes around them."}</small>
               </label>
               <div className="row2">
                 <label className="field">
@@ -176,7 +176,7 @@ export function HookEditor({ hook, onClose, onSaved }: Props) {
                 <span>Headers</span>
                 <textarea ref={refs.headers} rows={3} value={form.headers} onFocus={() => (last.current = "headers")} onChange={(e) => set("headers", e.target.value)} spellCheck={false} placeholder="Content-Type: application/json" />
                 <small>
-                  One per line, written as Name: value. Keys in headers such as <code>Authorization</code> and <code>X-Api-Key</code> are hidden after you save, and <code>********</code> means the saved key is kept. To keep a key out of Bitswarm altogether, write <code>{"{{secret.NAME}}"}</code> and set <code>SWARM_SECRET_NAME</code> on the server.
+                  One per line, written as Name: value. Keys in headers such as <code>Authorization</code> and <code>X-Api-Key</code> are hidden after you save, and <code>********</code> means the saved key is kept. To keep a key out of BitSwarm altogether, write <code>{"{{secret.NAME}}"}</code> and set <code>SWARM_SECRET_NAME</code> on the server.
                 </small>
               </label>
               <label className="field">
@@ -222,7 +222,7 @@ export function HookEditor({ hook, onClose, onSaved }: Props) {
                 A sample <code>{preview.event}</code> event.
                 {preview.unknown.length > 0 && <span className="bad"> Unknown placeholder{preview.unknown.length > 1 ? "s" : ""}: {preview.unknown.map((k) => `{{${k}}}`).join(", ")}.</span>}
                 {preview.empty.length > 0 && <> {preview.empty.map((k) => `{{${k}}}`).join(", ")} {preview.empty.length > 1 ? "are" : "is"} empty for this event.</>}
-                {(preview.missingSecrets?.length ?? 0) > 0 && <span className="bad"> Not set on the server: {preview.missingSecrets.map((k) => `SWARM_SECRET_${k}`).join(", ")}. The hook can’t send until you set {preview.missingSecrets.length > 1 ? "them" : "it"} and restart Bitswarm.</span>}
+                {(preview.missingSecrets?.length ?? 0) > 0 && <span className="bad"> Not set on the server: {preview.missingSecrets.map((k) => `SWARM_SECRET_${k}`).join(", ")}. The hook can’t send until you set {preview.missingSecrets.length > 1 ? "them" : "it"} and restart BitSwarm.</span>}
               </>
             )}
           </p>

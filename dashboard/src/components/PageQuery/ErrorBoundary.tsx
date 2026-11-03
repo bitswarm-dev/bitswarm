@@ -21,7 +21,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="sched">
           <div className="note" role="alert">
             <span>
-              <strong>Can’t reach the Bitswarm server.</strong> {this.state.error.message}. Start it with{" "}
+              <strong>Can’t reach the BitSwarm server.</strong> {this.state.error.message}. Start it with{" "}
               <code>./run.sh</code>, then{" "}
               <button className="btn" onClick={() => this.setState({ error: null })}>
                 Try again

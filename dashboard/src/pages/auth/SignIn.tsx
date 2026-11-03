@@ -34,7 +34,7 @@ export function SignIn() {
           if (err instanceof ApiError) {
             setError(err.message);
             setLocked(safeNumber(err.details.lockedFor) > 1 && err.status === 429 ? safeNumber(err.details.lockedFor) : 0);
-          } else setError("Can’t reach the Bitswarm server.");
+          } else setError("Can’t reach the BitSwarm server.");
           setPass("");
         },
       },
@@ -48,7 +48,7 @@ export function SignIn() {
       <form className="login-card" onSubmit={submit} noValidate aria-labelledby="lgTitle">
         <div className="brand">
           <Logo size={28} />
-          Bitswarm
+          BitSwarm
         </div>
         <div>
           <h1 id="lgTitle">Sign in</h1>
@@ -84,7 +84,7 @@ export function SignIn() {
           </p>
         )}
       </form>
-      <p className="lg-foot">Bitswarm {VERSION} · The server checks your password.</p>
+      <p className="lg-foot">BitSwarm {VERSION} · The server checks your password.</p>
     </div>
   );
 }

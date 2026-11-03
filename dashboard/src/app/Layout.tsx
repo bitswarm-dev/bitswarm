@@ -32,7 +32,7 @@ export function Layout() {
       <header className="top">
         <div className="brand">
           <Logo />
-          Bitswarm
+          BitSwarm
         </div>
         <div className="rates">
           <Suspense fallback={null}>

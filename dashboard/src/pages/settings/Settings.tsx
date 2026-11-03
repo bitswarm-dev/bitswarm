@@ -14,9 +14,9 @@ import { safeObject } from "@/utils/safe";
 
 const ENGINE_NOTES: Record<string, string> = {
   connection:
-    "The port, UPnP, DHT and encryption options are read when Bitswarm starts, so restart Bitswarm after changing them. Connection limits, upload slots, the proxy, peer exchange, local peer discovery and uTP options are saved but the BitTorrent engine doesn’t use them yet.",
+    "The port, UPnP, DHT and encryption options are read when BitSwarm starts, so restart BitSwarm after changing them. Connection limits, upload slots, the proxy, peer exchange, local peer discovery and uTP options are saved but the BitTorrent engine doesn’t use them yet.",
   speed: "Global limits and the alternative speed schedule apply right away. Limits for a single torrent aren’t supported yet.",
-  webui: "The Web UI port, HTTPS and proxy options are saved but not used yet. Bitswarm listens on the PORT environment variable.",
+  webui: "The Web UI port, HTTPS and proxy options are saved but not used yet. BitSwarm listens on the PORT environment variable.",
 };
 
 const KEYS = (s: SettingsData) => Object.keys(s) as (keyof SettingsData)[];

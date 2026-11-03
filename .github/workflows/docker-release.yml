@@ -69,10 +69,10 @@ jobs:
           if [ "$PRERELEASE" = "true" ]; then flags="--prerelease"; elif [ "$LATEST" != "true" ]; then flags="--latest=false"; fi
           notes="docs/release-notes/v$VERSION.md"
           if [ -f "$notes" ]; then
-            gh release create "$RELEASE_TAG" --verify-tag --title "Bitswarm $VERSION" $flags --notes-file "$notes"
+            gh release create "$RELEASE_TAG" --verify-tag --title "BitSwarm $VERSION" $flags --notes-file "$notes"
             exit 0
           fi
-          gh release create "$RELEASE_TAG" --verify-tag --title "Bitswarm $VERSION" --generate-notes $flags \
+          gh release create "$RELEASE_TAG" --verify-tag --title "BitSwarm $VERSION" --generate-notes $flags \
             --notes "Docker images for linux/amd64, arm64, arm/v7 and 386 are on Docker Hub as dockerkeithics/bitswarm-server and dockerkeithics/bitswarm-web. Server binaries for Linux, macOS and Windows and the dashboard build are attached, with SHA256SUMS. Licensed under the PolyForm Noncommercial License 1.0.0."
 
   images:

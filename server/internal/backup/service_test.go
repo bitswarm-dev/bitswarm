@@ -336,8 +336,8 @@ func TestCheck_Errors(t *testing.T) {
 		name, in, want string
 	}{
 		{"not json", "{nope", "isn’t valid JSON"},
-		{"not a swarm export", `{"a":1}`, "isn’t a Bitswarm export"},
-		{"wrong version", `{"swarm_backup":2,"parts":{}}`, "isn’t a Bitswarm export"},
+		{"not a swarm export", `{"a":1}`, "isn’t a BitSwarm export"},
+		{"wrong version", `{"swarm_backup":2,"parts":{}}`, "isn’t a BitSwarm export"},
 		{"nothing importable", `{"swarm_backup":1,"parts":{"settings":{"nope":1}}}`, "doesn’t contain anything"},
 	}
 	for _, tc := range tests {

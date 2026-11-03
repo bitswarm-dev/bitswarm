@@ -58,15 +58,15 @@ export function Hooks() {
         <span>
           API hooks are sent from this server, with retries when the other side fails.{" "}
           {config.commandsEnabled
-            ? "Command hooks are on, so they run on this machine with Bitswarm’s permissions."
+            ? "Command hooks are on, so they run on this machine with BitSwarm’s permissions."
             : "Command hooks are off: they’re recorded as “Not run” until the server is started with SWARM_ALLOW_COMMANDS=1."}{" "}
-          Hooks are for advanced users and you use them at your own risk: Bitswarm and its developers aren’t responsible for any damage they cause.
+          Hooks are for advanced users and you use them at your own risk: BitSwarm and its developers aren’t responsible for any damage they cause.
         </span>
       </div>
 
       <div className="rules">
         {hooks.length === 0 ? (
-          <div className="empty"><strong>No hooks yet</strong>Create one to call an API or run a command when something happens in Bitswarm.</div>
+          <div className="empty"><strong>No hooks yet</strong>Create one to call an API or run a command when something happens in BitSwarm.</div>
         ) : (
           hooks.map((h) => (
             <article key={h.id} className={`rule ${h.enabled ? "" : "off"}`}>

@@ -16,7 +16,7 @@ type Error struct {
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("Bitswarm can’t %s %s: %s. Pick a folder Bitswarm has write access to.", e.Action, e.Path, e.Reason)
+	return fmt.Sprintf("BitSwarm can’t %s %s: %s. Pick a folder BitSwarm has write access to.", e.Action, e.Path, e.Reason)
 }
 
 func reason(err error) string {

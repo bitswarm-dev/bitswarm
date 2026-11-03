@@ -159,7 +159,7 @@ func Describe(event string, d map[string]any) (level, msg string) {
 		}
 	case "update.available":
 		level = "warn"
-		msg = fmt.Sprintf("Bitswarm %s is available. You’re running %s.", str(d, "latest"), str(d, "current"))
+		msg = fmt.Sprintf("BitSwarm %s is available. You’re running %s.", str(d, "latest"), str(d, "current"))
 	default:
 		msg = event
 	}

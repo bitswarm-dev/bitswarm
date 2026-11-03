@@ -560,7 +560,7 @@ func TestPathCheck(t *testing.T) {
 	locked := true
 	f.svc.SetPathCheck(func(p string) error {
 		if locked {
-			return errors.New("Bitswarm can’t write to " + p + ": permission denied.")
+			return errors.New("BitSwarm can’t write to " + p + ": permission denied.")
 		}
 		return nil
 	})
