@@ -108,7 +108,7 @@ func TestBuild_APIAndCommand(t *testing.T) {
 	if d.URL != "https://x.example/hook?name=Say%20%22hi%22" || d.Body != `{"name":"Say \"hi\""}` {
 		t.Errorf("url/body = %q / %q", d.URL, d.Body)
 	}
-	if !slices.Contains(d.Headers, [2]string{"X-Swarm-Event", "torrent.completed"}) || !slices.Contains(d.Headers, [2]string{"User-Agent", "Bitswarm/" + Version}) {
+	if !slices.Contains(d.Headers, [2]string{"X-Swarm-Event", "torrent.completed"}) || !slices.Contains(d.Headers, [2]string{"User-Agent", "BitSwarm/" + Version}) {
 		t.Errorf("headers = %v", d.Headers)
 	}
 	if !strings.HasPrefix(d.Copy, "curl -X POST 'https://x.example/hook") || !strings.HasPrefix(d.Text, "POST https://x.example") {
@@ -181,7 +181,7 @@ func TestDelivery_SendsSignedRequestWithRetries(t *testing.T) {
 	if hits.Load() != 3 {
 		t.Fatalf("hits = %d, want 3 (two 503s then success)", hits.Load())
 	}
-	if gotSig != Sign("s3cret", gotBody) || gotEvent != "torrent.completed" || !strings.HasPrefix(gotUA, "Bitswarm/") {
+	if gotSig != Sign("s3cret", gotBody) || gotEvent != "torrent.completed" || !strings.HasPrefix(gotUA, "BitSwarm/") {
 		t.Errorf("sig=%q event=%q ua=%q", gotSig, gotEvent, gotUA)
 	}
 	ds, _ := svc.Deliveries(ctx)

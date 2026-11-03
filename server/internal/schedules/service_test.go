@@ -481,7 +481,7 @@ func TestHTTPFetcher(t *testing.T) {
 			http.NotFound(w, r)
 			return
 		}
-		if !strings.HasPrefix(r.Header.Get("User-Agent"), "Bitswarm/") {
+		if !strings.HasPrefix(r.Header.Get("User-Agent"), "BitSwarm/") {
 			w.WriteHeader(400)
 			return
 		}

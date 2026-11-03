@@ -211,7 +211,7 @@ func Build(h Hook, event string, data map[string]any, now time.Time) Delivery {
 	for _, kv := range hs {
 		d.Headers = append(d.Headers, [2]string{kv[0], Fill(kv[1], vars, "text")})
 	}
-	d.Headers = append(d.Headers, [2]string{"User-Agent", "Bitswarm/" + Version}, [2]string{"X-Swarm-Event", event})
+	d.Headers = append(d.Headers, [2]string{"User-Agent", "BitSwarm/" + Version}, [2]string{"X-Swarm-Event", event})
 	d.Text = reqText(d)
 	d.Copy = curlOf(d)
 	return d
