@@ -21,9 +21,10 @@ export function Log() {
   const clear = useClearLog();
   const copy = useCopy();
   const toast = useToast();
+  const { patch } = ui;
   useEffect(() => {
-    ui.patch({ logSeen: Date.now() });
-  }, [ui, data.total]);
+    patch({ logSeen: Date.now() });
+  }, [patch, data.total]);
   const total = Object.values(data.counts).reduce((a, b) => a + b, 0);
 
   const toggle = (l: Level) => setLevels((cur) => (cur.includes(l) ? cur.filter((x) => x !== l) : [...cur, l]));
