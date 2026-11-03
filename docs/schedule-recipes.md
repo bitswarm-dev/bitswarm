@@ -126,7 +126,7 @@ How it reads:
 
 Things to know:
 
-- Every part is `.+?`, which matches any text, so it keeps working when the group tag, the detail in the parentheses or the hash look different (`(1080p)`, `(720p HEVC)`, `(100)`, `[Hash_01]`). Strict patterns such as `\d\d` or `[0-9A-F]+` stop matching when a name differs a little.
+- Every part is `.+?`, which matches any text, so it keeps working when the group tag, the number in the parentheses or the hash look different, such as `(100)` or `(2024)`, or `[919404B]` or `[A1B2C3D]`. Strict patterns such as `\d\d` or `[0-9A-F]+` stop matching when a name differs a little.
 - With **Keep the file extension** on, the pattern is tested against the name without `.iso`, so end it with the closing `]` and don't put the extension in it.
 - A title that itself contains ` - ` is split at the first one.
 - Bitswarm uses Go's regular expression syntax: no lookahead and no backreferences.
