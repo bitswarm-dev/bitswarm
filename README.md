@@ -2,7 +2,7 @@
 
 # Bitswarm
 
-[![Release](https://img.shields.io/github/v/release/keithics/bitswarm)](https://github.com/keithics/bitswarm/releases)
+[![Release](https://img.shields.io/github/v/release/bitswarm-dev/bitswarm)](https://github.com/bitswarm-dev/bitswarm/releases)
 [![Docker pulls](https://img.shields.io/docker/pulls/dockerkeithics/bitswarm-server?label=docker%20pulls)](https://hub.docker.com/r/dockerkeithics/bitswarm-server)
 [![Platforms](https://img.shields.io/badge/platforms-amd64%20%7C%20arm64%20%7C%20arm%2Fv7%20%7C%20386-blue)](https://hub.docker.com/r/dockerkeithics/bitswarm-server/tags)
 
@@ -53,7 +53,7 @@ You only need [Docker](https://docs.docker.com/get-docker/) with Compose.
 
 ```sh
 mkdir bitswarm && cd bitswarm
-curl -fsSLO https://raw.githubusercontent.com/keithics/bitswarm/main/docker-compose.yml
+curl -fsSLO https://raw.githubusercontent.com/bitswarm-dev/bitswarm/main/docker-compose.yml
 mkdir data downloads && chmod 777 data downloads
 docker compose up -d
 ```
@@ -77,7 +77,7 @@ The images [`dockerkeithics/bitswarm-server`](https://hub.docker.com/r/dockerkei
 
 ### Release downloads
 
-Each [GitHub release](https://github.com/keithics/bitswarm/releases) has server binaries for Linux (amd64, arm64, armv7, 386), macOS (amd64, arm64) and Windows (amd64, arm64), the built dashboard, and `SHA256SUMS`. Check the download against `SHA256SUMS` before you run it.
+Each [GitHub release](https://github.com/bitswarm-dev/bitswarm/releases) has server binaries for Linux (amd64, arm64, armv7, 386), macOS (amd64, arm64) and Windows (amd64, arm64), the built dashboard, and `SHA256SUMS`. Check the download against `SHA256SUMS` before you run it.
 
 The server binary serves the API on port 8080. It doesn't serve the dashboard. Put the dashboard files behind any web server that proxies `/api` to the server. The Docker setup does this for you with nginx.
 
