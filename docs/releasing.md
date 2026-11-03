@@ -24,6 +24,7 @@ There are no version files to edit. The tag is the only source of the version. T
 ## Cut a release
 
 1. **Land the work in `main`.** Pull requests merge once the checks pass.
+   Add the release to `CHANGELOG.md` and write `docs/release-notes/vX.Y.Z.md`. When that file exists, the pipeline uses it as the GitHub release notes instead of generating them.
 2. **Optional: test a release candidate.** Tag the commit `v0.10.0-rc.1` and push the tag. Fix problems with normal pull requests to `main`, then tag `rc.2`, `rc.3` and so on.
 3. **Tag the final release** on the commit you tested and push the tag:
 
