@@ -566,3 +566,24 @@ func TestDelivery_CurlHook(t *testing.T) {
 		t.Errorf("server saw %+v", got)
 	}
 }
+
+func TestBuild_CurlNeutralizesOptionsAndFiles(t *testing.T) {
+	tests := []struct{ name, want string }{
+		{"@/etc/passwd", `' @/etc/passwd'`},
+		{"<secret.txt", `' <secret.txt'`},
+		{"-o /tmp/x", `' -o /tmp/x'`},
+		{"plain name", `'plain name'`},
+		{"x'; echo pwned #", `'x'\''; echo pwned #'`},
+	}
+	for _, tc := range tests {
+		h := Hook{Kind: "curl", Cmd: "curl -d {{torrent.name}}", Timeout: 5}
+		d := Build(h, "torrent.completed", map[string]any{"torrent": torrentInfo(tc.name, "")}, time.Unix(0, 0))
+		if want := "curl -d " + tc.want; d.Command != want {
+			t.Errorf("%q: command = %s, want %s", tc.name, d.Command, want)
+		}
+	}
+	c := Build(Hook{Kind: "cmd", Cmd: "echo {{torrent.name}}", Timeout: 5}, "torrent.completed", map[string]any{"torrent": torrentInfo("@x", "")}, time.Unix(0, 0))
+	if c.Command != "echo '@x'" {
+		t.Errorf("command hooks must stay unchanged, got %s", c.Command)
+	}
+}
