@@ -16,6 +16,7 @@ type Settings struct {
 	WatchEnabled      bool    `json:"watchEnabled"`
 	WatchPath         string  `json:"watchPath"`
 	SearchDelay       int     `json:"searchDelay"`
+	SpeedWindow       int     `json:"speedWindow"`
 	Port              int     `json:"port"`
 	Upnp              bool    `json:"upnp"`
 	MaxConn           int     `json:"maxConn"`
@@ -69,7 +70,7 @@ func SetDownloadDir(dir string) { downloadDir = strings.TrimRight(dir, "/") }
 func Defaults() Settings {
 	return Settings{
 		SavePath: downloadDir, IncompletePath: downloadDir + "/incomplete", CompletedPath: downloadDir + "/complete",
-		StartAuto: true, CreateSubfolder: true, WatchPath: downloadDir + "/watch", SearchDelay: 5,
+		StartAuto: true, CreateSubfolder: true, WatchPath: downloadDir + "/watch", SearchDelay: 5, SpeedWindow: 90,
 		Port: 51413, Upnp: true, MaxConn: 500, MaxConnPer: 100, MaxUpSlots: 20, MaxUpSlotsPer: 4,
 		ProxyType: "none", ProxyPort: 1080,
 		AltDl: 2048, AltUl: 512, AltFrom: "08:00", AltTo: "18:00", AltDays: "weekdays", LimitUtp: true,

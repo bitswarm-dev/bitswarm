@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -557,5 +558,131 @@ func TestPathCheck_BlocksAddAndMove(t *testing.T) {
 	}
 	if _, err := f.svc.Batch(ctx, BatchReq{Action: "move", IDs: []int64{a.ID}, Path: "/mnt/ok"}); err != nil {
 		t.Errorf("move into a good folder: %v", err)
+	}
+}
+
+func TestChartWindowMath(t *testing.T) {
+	tests := []struct {
+		name                              string
+		in, window, step, slots, coverage int
+	}{
+		{"thirty seconds", 30, 30, 1, 30, 30},
+		{"ninety seconds", 90, 90, 1, 90, 90},
+		{"five minutes", 300, 300, 4, 75, 300},
+		{"fifteen minutes", 900, 900, 10, 90, 900},
+		{"one hour", 3600, 3600, 40, 90, 3600},
+		{"an odd value", 100, 100, 2, 50, 100},
+		{"unset falls back to ninety seconds", 0, 90, 1, 90, 90},
+		{"too short falls back", 29, 90, 1, 90, 90},
+		{"too long falls back", 3601, 90, 1, 90, 90},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			w := chartWindow(tc.in)
+			if w != tc.window || chartStep(w) != tc.step || chartSlots(w) != tc.slots {
+				t.Errorf("window %d: got window %d step %d slots %d, want %d %d %d", tc.in, w, chartStep(w), chartSlots(w), tc.window, tc.step, tc.slots)
+			}
+			if chartSlots(w) > chartPoints {
+				t.Errorf("slots = %d, more than the %d points of memory", chartSlots(w), chartPoints)
+			}
+			if got := chartSlots(w) * chartStep(w); got < tc.coverage || got >= tc.coverage+chartStep(w) {
+				t.Errorf("the chart covers %d s, want about %d", got, tc.coverage)
+			}
+		})
+	}
+}
+
+func TestPushHist_AveragesEachStep(t *testing.T) {
+	f := newFixture(t, false)
+	s := f.svc
+	s.hist, s.acc, s.chartW = History{}, chartAcc{}, 300
+	for i := 1; i <= 8; i++ {
+		s.pushHist(float64(i), float64(i*10), 300)
+	}
+	if !slices.Equal(s.hist.Dl, []float64{2.5, 6.5}) || !slices.Equal(s.hist.Ul, []float64{25, 65}) {
+		t.Errorf("hist = %v / %v, want [2.5 6.5] / [25 65]", s.hist.Dl, s.hist.Ul)
+	}
+	s.pushHist(9, 90, 300)
+	s.pushHist(10, 100, 300)
+	got := s.chartHist(300)
+	if !slices.Equal(got.Dl, []float64{2.5, 6.5, 9.5}) || !slices.Equal(got.Ul, []float64{25, 65, 95}) {
+		t.Errorf("the chart should include the bucket still filling, got %v / %v", got.Dl, got.Ul)
+	}
+}
+
+func TestPushHist_MemoryStaysBounded(t *testing.T) {
+	for _, window := range []int{30, 90, 300, 900, 3600} {
+		t.Run(strconv.Itoa(window)+" seconds", func(t *testing.T) {
+			f := newFixture(t, false)
+			s := f.svc
+			s.hist, s.acc, s.chartW = History{}, chartAcc{}, window
+			for i := 0; i < 20000; i++ {
+				s.pushHist(float64(i), float64(i), window)
+			}
+			if len(s.hist.Dl) > chartSlots(window) || len(s.hist.Ul) > chartSlots(window) || len(s.hist.Dl) > chartPoints {
+				t.Errorf("history holds %d and %d points, want at most %d", len(s.hist.Dl), len(s.hist.Ul), chartSlots(window))
+			}
+			if cap(s.hist.Dl) > 8*chartPoints || cap(s.hist.Ul) > 8*chartPoints {
+				t.Errorf("history capacity = %d and %d, which is more memory than %d points need", cap(s.hist.Dl), cap(s.hist.Ul), chartPoints)
+			}
+			if got := s.chartHist(window); len(got.Dl) > chartSlots(window) {
+				t.Errorf("chartHist returned %d points, want at most %d", len(got.Dl), chartSlots(window))
+			}
+		})
+	}
+}
+
+func TestPushHist_ChangingTheWindowRestartsTheChart(t *testing.T) {
+	f := newFixture(t, false)
+	s := f.svc
+	s.hist, s.acc, s.chartW = History{}, chartAcc{}, 90
+	for i := 0; i < 20; i++ {
+		s.pushHist(5, 5, 90)
+	}
+	if len(s.hist.Dl) != 20 {
+		t.Fatalf("setup: %d points", len(s.hist.Dl))
+	}
+	if got := s.chartHist(3600); len(got.Dl) != 0 {
+		t.Errorf("before the next tick, a new window should show nothing, got %d points", len(got.Dl))
+	}
+	s.pushHist(7, 7, 3600)
+	if s.chartW != 3600 || len(s.hist.Dl) != 0 || s.acc.n != 1 {
+		t.Errorf("after the change: window %d, %d points, %d samples in the bucket", s.chartW, len(s.hist.Dl), s.acc.n)
+	}
+	if got := s.chartHist(3600); len(got.Dl) != 1 || got.Dl[0] != 7 {
+		t.Errorf("chartHist = %v, want [7]", got.Dl)
+	}
+}
+
+func TestStats_ReportsTheChartWindow(t *testing.T) {
+	ctx := context.Background()
+	tests := []struct {
+		name         string
+		setting      int
+		window, step int
+	}{
+		{"the default", 90, 90, 1},
+		{"unset", 0, 90, 1},
+		{"five minutes", 300, 300, 4},
+		{"one hour", 3600, 3600, 40},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newFixture(t, false)
+			f.set.s.SpeedWindow = tc.setting
+			for i := 0; i < 5000; i++ {
+				f.svc.pushHist(1, 1, chartWindow(tc.setting))
+			}
+			st, err := f.svc.Stats(ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if st.HistWin != tc.window || st.HistStep != tc.step {
+				t.Errorf("window %d step %d, want %d %d", st.HistWin, st.HistStep, tc.window, tc.step)
+			}
+			if len(st.Hist.Dl) == 0 || len(st.Hist.Dl) > chartPoints || len(st.Hist.Ul) > chartPoints {
+				t.Errorf("stats hold %d and %d points, want 1 to %d", len(st.Hist.Dl), len(st.Hist.Ul), chartPoints)
+			}
+		})
 	}
 }

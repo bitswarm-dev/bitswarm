@@ -1,5 +1,5 @@
 import { Suspense, useState, type FormEvent } from "react";
-import { useUi } from "@/app/ui";
+import { useListView } from "@/app/listView";
 import { Modal } from "@/components/Modal/Modal";
 import { useToast } from "@/components/Toasts/Toasts";
 import { useAddTag, useDeleteTag, useRenameTag } from "@/features/catalog/mutations";
@@ -7,7 +7,7 @@ import { useCatalog, useTagUsage } from "@/features/catalog/queries";
 
 function Body() {
   const toast = useToast();
-  const ui = useUi();
+  const view = useListView();
   const { data: catalog } = useCatalog();
   const { data: usage, refetch } = useTagUsage();
   const add = useAddTag();
@@ -37,7 +37,7 @@ function Body() {
       { from, to: draft },
       {
         onSuccess: (r) => {
-          if (ui.tag === from) ui.patch({ tag: r.name });
+          if (view.tag === from) view.go({ tag: r.name }, { replace: true });
           setEditing(null);
           done();
           toast(r.name === from ? "Name unchanged" : `Renamed ${from} to ${r.name}`);
@@ -50,7 +50,7 @@ function Body() {
   const confirmDelete = (name: string) =>
     del.mutate(name, {
       onSuccess: () => {
-        if (ui.tag === name) ui.patch({ tag: null });
+        if (view.tag === name) view.go({ tag: null }, { replace: true });
         setDeleting(null);
         done();
         toast(`Deleted ${name}`);

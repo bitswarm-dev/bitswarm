@@ -23,8 +23,15 @@ export interface GroupDef {
   fields: FieldDef[];
 }
 
+export const SECTION_IDS = ["downloads", "connection", "speed", "bittorrent", "webui", "backup"] as const;
+export type SectionId = (typeof SECTION_IDS)[number];
+
+export function isSectionId(v: string): v is SectionId {
+  return (SECTION_IDS as readonly string[]).includes(v);
+}
+
 export interface SectionDef {
-  id: string;
+  id: SectionId;
   title: string;
   groups?: GroupDef[];
 }
@@ -132,6 +139,12 @@ export const SECTIONS: SectionDef[] = [
           f("limitLan", "check", "Apply rate limits to peers on my local network"),
         ],
       },
+      {
+        title: "Speed chart",
+        fields: [
+          f("speedWindow", "number", "Time shown", { unit: "seconds", min: 30, max: 3600, hint: "How far back the speed chart in the sidebar looks, from 30 seconds to 3600 (1 hour). For example 300 is 5 minutes and 900 is 15 minutes. The chart always uses the same memory, so a longer time averages more seconds into each point. Changing this restarts the chart." }),
+        ],
+      },
     ],
   },
   {
@@ -191,7 +204,7 @@ export const SECTIONS: SectionDef[] = [
   { id: "backup", title: "Backup" },
 ];
 
-export function sectionOf(key: string): string | undefined {
+export function sectionOf(key: string): SectionId | undefined {
   return SECTIONS.find((s) => s.groups?.some((g) => g.fields.some((x) => x.key === key)))?.id;
 }
 

@@ -53,7 +53,8 @@ aside{display:flex;flex-direction:column;gap:20px;min-height:0;overflow:auto;pad
 .flist{display:flex;flex-direction:column;gap:1px}
 .fbtn{display:flex;align-items:center;gap:9px;border:0;background:none;padding:7px 10px;border-radius:7px;cursor:pointer;text-align:left;color:var(--muted)}
 .fbtn:hover{background:var(--sunk);color:var(--fg)}
-.fbtn[aria-pressed="true"]{background:var(--accent-soft);color:var(--fg);font-weight:600}
+.fbtn[aria-pressed="true"],.fbtn[aria-current="page"],.fbtn[aria-current="true"]{background:var(--accent-soft);color:var(--fg);font-weight:600}
+a.fbtn{text-decoration:none}
 .fbtn .n{margin-left:auto;font:500 11.5px var(--f-mono);color:var(--faint)}
 .fbtn .sw{width:8px;height:8px;border-radius:2px;flex:none}
 .spark{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px}

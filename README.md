@@ -152,7 +152,7 @@ Create Bearer tokens with read, control or admin access on the **API tokens** pa
 - **Hooks:** call an API (HMAC-signed, retried) or run a command on any event. Commands stay off unless you start the server with `SWARM_ALLOW_COMMANDS=1`.
 - **API tokens:** Bearer tokens with read, control or admin access, under `/api/v1`.
 - **Backup:** export and import settings, theme, tags, schedules, presets, maintenance tasks and hooks as JSON.
-- **Interface:** light and dark themes, accent colors, background images, adjustable panel opacity, and a phone layout.
+- **Interface:** light and dark themes, accent colors, background images, adjustable panel opacity, a phone layout, and a speed chart whose time span you choose, from 30 seconds to 1 hour (Settings → Speed).
 
 ## Install
 
@@ -247,7 +247,7 @@ run.sh              starts the server and the dashboard
 docker-compose.yml  runs the published images (docker-compose.build.yml builds them from source)
 CLAUDE.md           rules for people and AI agents working on the code
 server/             Go service: Fiber, SQLite, built-in BitTorrent engine
-dashboard/          React 18, TypeScript, Vite, TanStack Query
+dashboard/          React 18, TypeScript, Vite, TanStack Router and Query
 ```
 
 Read [`CLAUDE.md`](./CLAUDE.md) first. It has the conventions, the event catalog and the design rules. Before you open a pull request, make sure these pass:

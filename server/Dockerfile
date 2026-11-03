@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS build
 ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETVARIANT
@@ -10,8 +10,8 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
     go build -trimpath -ldflags="-s -w -X bitswarm/server/internal/buildinfo.Version=${APP_VERSION}" -o /out/server ./cmd/server
 
-FROM alpine:3.21
-RUN apk add --no-cache ca-certificates tzdata curl \
+FROM alpine:3.24
+RUN apk add --no-cache ca-certificates tzdata \
     && adduser -D -u 10001 swarm \
     && mkdir -p /data /downloads \
     && chown swarm:swarm /data /downloads

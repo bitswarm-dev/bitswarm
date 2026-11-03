@@ -1,3 +1,4 @@
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useUi } from "@/app/ui";
 import { useToast } from "@/components/Toasts/Toasts";
@@ -5,7 +6,7 @@ import { getDefaults } from "@/features/settings/api";
 import { useSaveSettings } from "@/features/settings/mutations";
 import { useSettings } from "@/features/settings/queries";
 import { useStats } from "@/features/torrents/queries";
-import { SECTIONS, depOff, sectionOf, type FieldDef } from "@/features/settings/sections";
+import { SECTIONS, depOff, sectionOf, type FieldDef, type SectionId } from "@/features/settings/sections";
 import type { Settings as SettingsData } from "@/features/settings/types";
 import { BackupSection } from "./BackupSection";
 import { ApiError } from "@/lib/http";
@@ -29,7 +30,9 @@ export function Settings() {
   const ui = useUi();
   const [draft, setDraft] = useState<SettingsData>(saved);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [section, setSection] = useState("downloads");
+  const { section } = useParams({ from: "/settings/$section" });
+  const navigate = useNavigate();
+  const setSection = (id: SectionId, replace = false) => void navigate({ to: "/settings/$section", params: { section: id }, replace });
   const base = useRef(saved);
 
   useEffect(() => {
@@ -64,7 +67,7 @@ export function Settings() {
         setErrors(Object.keys(errs).length ? errs : { _: e.message });
         const first = Object.keys(errs)[0];
         const sec = first ? sectionOf(first) : undefined;
-        if (sec) setSection(sec);
+        if (sec) setSection(sec, true);
         if (first) requestAnimationFrame(() => document.getElementById(`set-${first}`)?.focus());
       },
     });

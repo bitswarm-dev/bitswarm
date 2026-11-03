@@ -1,4 +1,5 @@
-import { useUi, type Tab } from "@/app/ui";
+import { useListView } from "@/app/listView";
+import type { Tab } from "@/app/ui";
 import { LineChart } from "@/components/Charts/LineChart";
 import { PieceMap } from "@/components/Charts/PieceMap";
 import { useToast } from "@/components/Toasts/Toasts";
@@ -229,7 +230,7 @@ function Speed({ t }: { t: Torrent }) {
 }
 
 export function Inspector({ torrent }: { torrent: Torrent | null }) {
-  const ui = useUi();
+  const view = useListView();
   const t = torrent;
   const count = (k: Tab) => (!t ? "" : k === "files" ? t.files.length : k === "peers" ? (["downloading", "seeding"].includes(t.status) ? t.peers.length : 0) : "");
 
@@ -237,7 +238,7 @@ export function Inspector({ torrent }: { torrent: Torrent | null }) {
     <section className="insp" aria-label="Torrent details">
       <div className="tabs" role="tablist">
         {TABS.map(([k, l]) => (
-          <button key={k} className="tab" role="tab" aria-selected={ui.tab === k} onClick={() => ui.patch({ tab: k })}>
+          <button key={k} className="tab" role="tab" aria-selected={view.tab === k} onClick={() => view.go({ tab: k }, { replace: true })}>
             {l}
             {count(k) !== "" && <span className="n">{count(k)}</span>}
           </button>
@@ -252,11 +253,11 @@ export function Inspector({ torrent }: { torrent: Torrent | null }) {
               <h2>{t.name}</h2>
               <span className={`pill st-${t.status}`} style={pillColor(t)}>{STATUS_TEXT[t.status]}</span>
             </div>
-            {ui.tab === "general" && <General t={t} avgTitle="" />}
-            {ui.tab === "files" && <Files t={t} />}
-            {ui.tab === "peers" && <Peers t={t} />}
-            {ui.tab === "trackers" && <Trackers t={t} />}
-            {ui.tab === "speed" && <Speed t={t} />}
+            {view.tab === "general" && <General t={t} avgTitle="" />}
+            {view.tab === "files" && <Files t={t} />}
+            {view.tab === "peers" && <Peers t={t} />}
+            {view.tab === "trackers" && <Trackers t={t} />}
+            {view.tab === "speed" && <Speed t={t} />}
           </>
         )}
       </div>

@@ -118,6 +118,8 @@ export interface Stats {
   alt: boolean;
   altActive: boolean;
   hist: { dl: number[]; ul: number[] };
+  histWindow?: number;
+  histStep?: number;
   uptime: number;
   torrents: number;
   active: number;

@@ -157,6 +157,7 @@ func Validate(d Settings) map[string]string {
 	in("port", d.Port, 1, 65535, "Listening port")
 	in("webPort", d.WebPort, 1, 65535, "Web UI port")
 	in("searchDelay", d.SearchDelay, 0, 3600, "Wait between searches")
+	in("speedWindow", d.SpeedWindow, 30, 3600, "Speed chart window")
 	in("maxConn", d.MaxConn, 0, 99999, "Global maximum connections")
 	in("maxConnPer", d.MaxConnPer, 0, 99999, "Connections per torrent")
 	in("maxUpSlots", d.MaxUpSlots, 0, 9999, "Global upload slots")

@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet } from "@tanstack/react-router";
 import { Logo, Svg } from "@/components/Icons/Svg";
 import { ErrorBoundary } from "@/components/PageQuery/ErrorBoundary";
 import { Sidebar } from "@/components/Sidebar/Sidebar";

@@ -12,6 +12,7 @@ export interface Settings {
   watchEnabled: boolean;
   watchPath: string;
   searchDelay: number;
+  speedWindow: number;
   port: number;
   upnp: boolean;
   maxConn: number;

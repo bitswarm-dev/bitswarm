@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@tanstack/react-router";
 import { writeFlag } from "@/app/storage";
 import { VERSION } from "@/app/version";
 import { useToast } from "@/components/Toasts/Toasts";
