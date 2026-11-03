@@ -2,6 +2,15 @@
 
 All notable changes to BitSwarm are listed here, newest first. The format follows [Keep a Changelog](https://keepachangelog.com), and versions follow [Semantic Versioning](https://semver.org). The version comes from the git tag.
 
+## [1.1.0] - 2026-11-04
+
+### Changed
+- The product name is written **BitSwarm** everywhere: the dashboard (logo, page title, sign-in, notices, settings, errors), server messages and the execution log, the README and docs, the issue templates and the release title ([#18](https://github.com/bitswarm-dev/bitswarm/pull/18)).
+- The `User-Agent` header is now `BitSwarm/<version>` (it was `Bitswarm/<version>`) on hook requests, scheduled searches, the update check and torrent file downloads. The BitTorrent client name sent to peers changed the same way ([#19](https://github.com/bitswarm-dev/bitswarm/pull/19)). Anything that matches the header case-sensitively needs the new spelling.
+- Screenshots, recipe screenshots and the social preview image show the new name ([#19](https://github.com/bitswarm-dev/bitswarm/pull/19)).
+
+Technical names are unchanged: the Docker images (`bitswarm-server`, `bitswarm-web`), the repository, the `SWARM_*` environment variables and file names.
+
 ## [1.0.1] - 2026-11-03
 
 ### Added
@@ -55,6 +64,7 @@ Pull requests: [#1](https://github.com/bitswarm-dev/bitswarm/pull/1), [#2](https
 
 First release: a standalone BitTorrent client with a web interface, a built-in engine, scheduled downloads, rename presets, maintenance, hooks, API tokens, backups and an Execution log.
 
+[1.1.0]: https://github.com/bitswarm-dev/bitswarm/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/bitswarm-dev/bitswarm/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/bitswarm-dev/bitswarm/compare/v0.9.1...v1.0.0
 [0.9.1]: https://github.com/bitswarm-dev/bitswarm/compare/v0.9.0...v0.9.1
