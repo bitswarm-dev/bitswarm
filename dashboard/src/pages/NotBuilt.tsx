@@ -8,7 +8,7 @@ export function NotBuilt({ title, blurb }: { title: string; blurb: string }) {
         </div>
       </div>
       <div className="note">
-        <span>This screen isn’t built in the new dashboard yet. The prototype in <code>draft.html</code> still has the full version.</span>
+        <span>This screen isn’t built in the dashboard yet.</span>
       </div>
     </section>
   );

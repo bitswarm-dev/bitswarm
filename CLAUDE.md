@@ -8,13 +8,12 @@ Instructions for AI coding agents (and humans) working on **Bitswarm**, a web UI
 
 Bitswarm is a browser-based interface for managing torrents, in the style of qBittorrent, Transmission and Deluge web UIs, with extra automation: scheduled site searches, regex rename presets, maintenance tasks, developer hooks, an execution log, API tokens and settings backup.
 
-**Current state: a React dashboard on a standalone Go server with a built-in BitTorrent engine.** The prototype `draft.html` (one file, ~3,400 lines) is the visual and behavioral reference.
+**Current state: a React dashboard on a standalone Go server with a built-in BitTorrent engine.**
 
 The engine is **real and built in**: `server/internal/engine` wraps `github.com/anacrolix/torrent`, so Bitswarm downloads and seeds by itself with no qBittorrent, Transmission or other client. The old simulation only runs in demo mode (`SWARM_DEMO=1`). Every place where something is faked or unsupported must say so in the UI.
 
 | | |
 |---|---|
-| Prototype (reference) | `draft.html`: HTML + CSS + JS in one file, `CURRENT_VERSION = '0.9.0'` |
 | Dashboard | `dashboard/`: Vite, React 18, TypeScript, React Router, TanStack Query v5 |
 | Server | `server/`: Go, Fiber, SQLite (`modernc.org/sqlite`), module `bitswarm/server` |
 | Run everything | `./run.sh`, then open http://localhost:5173 (server on :8080, Vite proxies `/api`). A fresh database is empty and downloads for real into `server/downloads` (or `SWARM_DOWNLOADS`). `./run.sh --demo` (or `SWARM_DEMO=1`) switches to the **simulated** engine and adds 10 sample torrents. |
@@ -64,7 +63,7 @@ Known gaps (all disclosed in the UI):
 3. **Safety first for anything that runs or leaves the machine.** Shell placeholders are always single-quoted, secrets are hashed or redacted, hooks show an advanced-user warning, imported hooks start disabled, and command hooks stay off unless the server is started with them enabled.
 4. **Both themes, both widths.** Every UI change must work in light and dark (system, light, dark) and at ~390 px width with no horizontal page scroll.
 5. **Plain, specific copy.** Buttons say exactly what happens ("Revoke", "Move", "Save changes"). Errors say what went wrong and how to fix it. No apologies, no vague "Something went wrong".
-6. **Reuse the prototype's look.** `dashboard/src/styles/global.css` is `draft.html`'s CSS, copied as is. Use its class names (`.row`, `.fbtn`, `.pill`, `.sched`, `.rule`, `.modal`, `.menu`, …) before inventing new ones, and keep colors as tokens.
+6. **Reuse the existing look.** `dashboard/src/styles/global.css` holds the shared CSS. Use its class names (`.row`, `.fbtn`, `.pill`, `.sched`, `.rule`, `.modal`, `.menu`, …) before inventing new ones, and keep colors as tokens.
 7. **Test in a real browser before you say it works** (§9).
 8. **Comments in code only when asked.** No inline comments by default.
 
@@ -74,7 +73,6 @@ Known gaps (all disclosed in the UI):
 
 ```
 run.sh                  starts server + dashboard, stops both on exit
-draft.html              the prototype (reference only)
 server/                 Go service (see server/CLAUDE.md)
   cmd/server/main.go    composition root
   internal/
