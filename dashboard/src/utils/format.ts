@@ -56,3 +56,10 @@ export function formatWhen(ts: number): string {
   const day = today ? "" : `${d.toLocaleDateString([], { month: "short", day: "numeric" })} `;
   return day + d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
+
+export function formatSpan(seconds: number): string {
+  const n = Math.round(seconds);
+  if (n < 120) return `${n} s`;
+  if (n % 3600 === 0) return n === 3600 ? "1 hour" : `${n / 3600} hours`;
+  return `${Math.round(n / 60)} min`;
+}

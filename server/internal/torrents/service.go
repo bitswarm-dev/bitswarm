@@ -60,6 +60,8 @@ type Service struct {
 	sessUl  float64
 	alt     bool
 	hist    History
+	acc     chartAcc
+	chartW  int
 	started time.Time
 	now     func() time.Time
 	rnd     func() float64
@@ -68,6 +70,7 @@ type Service struct {
 func NewService(repo Repository, set SettingsSource, cat Catalog, bus events.Emitter, log Logger) *Service {
 	s := &Service{repo: repo, set: set, cat: cat, bus: bus, log: log, free: 318.4 * GiB, dht: 412,
 		started: time.Now(), now: time.Now, rnd: newRng(time.Now().UnixNano()).next}
+	s.chartW = DefaultChartWindow
 	s.prefill()
 	return s
 }
@@ -76,6 +79,7 @@ func (s *Service) SetEngine(e Engine, free func() float64) {
 	s.mu.Lock()
 	s.eng, s.freeFn, s.rechk = e, free, map[int64]bool{}
 	s.hist = History{Dl: make([]float64, 60), Ul: make([]float64, 60)}
+	s.acc, s.chartW = chartAcc{}, DefaultChartWindow
 	s.dht = 0
 	s.mu.Unlock()
 }

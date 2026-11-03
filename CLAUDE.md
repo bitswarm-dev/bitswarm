@@ -114,6 +114,7 @@ dashboard/
 - **Check `src/utils/` before writing an inline `typeof` or `Array.isArray` guard.** Add a helper there if a pattern repeats.
 - **Focus-sensitive controls** (selects, inputs) are fine in React lists because rows keep their keys. Keep keys stable.
 - Polling: torrents and stats refetch every second, the catalog every five, the log every two.
+- **Speed chart:** the sidebar chart draws `stats.hist` using `stats.histWindow` and `stats.histStep`. The server keeps at most 90 points per line whatever the `speedWindow` setting (30 to 3600 seconds, default 90) and averages `histStep` seconds into each point, so a longer window never uses more memory. Changing the window restarts the history. Don't raise the point count. The per-torrent chart in the inspector is separate and stays at 90 seconds.
 
 ### Server conventions
 

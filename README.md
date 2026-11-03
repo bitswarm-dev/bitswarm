@@ -121,7 +121,7 @@ Create Bearer tokens with read, control or admin access on the **API tokens** pa
 - **Hooks:** call an API (HMAC-signed, retried) or run a command on any event. Commands stay off unless you start the server with `SWARM_ALLOW_COMMANDS=1`.
 - **API tokens:** Bearer tokens with read, control or admin access, under `/api/v1`.
 - **Backup:** export and import settings, theme, tags, schedules, presets, maintenance tasks and hooks as JSON.
-- **Interface:** light and dark themes, accent colors, background images, adjustable panel opacity, and a phone layout.
+- **Interface:** light and dark themes, accent colors, background images, adjustable panel opacity, a phone layout, and a speed chart whose time span you choose, from 30 seconds to 1 hour (Settings → Speed).
 
 ## Install
 
