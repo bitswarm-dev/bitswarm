@@ -1,0 +1,11 @@
+node_modules/
+dashboard/dist/
+dashboard/*.tsbuildinfo
+server/bin/
+server/data/
+server/downloads/
+server/tmp/
+.DS_Store
+*.log
+/downloads/
+/data/

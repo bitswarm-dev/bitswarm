@@ -1,0 +1,31 @@
+name: bitswarm
+
+services:
+  server:
+    image: dockerkeithics/bitswarm-server:${SWARM_VERSION:-0.9.0}
+    restart: unless-stopped
+    environment:
+      SWARM_DEMO: ${SWARM_DEMO:-0}
+      SWARM_ALLOW_COMMANDS: ${SWARM_ALLOW_COMMANDS:-0}
+      SWARM_UPDATE_FEED: ${SWARM_UPDATE_FEED:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ${SWARM_DATA_DIR:-./data}:/data
+      - ${SWARM_DOWNLOADS_DIR:-./downloads}:/downloads
+    ports:
+      - "${SWARM_PEER_PORT:-51413}:${SWARM_PEER_PORT:-51413}/tcp"
+      - "${SWARM_PEER_PORT:-51413}:${SWARM_PEER_PORT:-51413}/udp"
+    networks: [bitswarm]
+
+  web:
+    image: dockerkeithics/bitswarm-web:${SWARM_VERSION:-0.9.0}
+    restart: unless-stopped
+    depends_on:
+      server:
+        condition: service_healthy
+    ports:
+      - "${SWARM_BIND:-127.0.0.1}:${SWARM_WEB_PORT:-8080}:80"
+    networks: [bitswarm]
+
+networks:
+  bitswarm:
