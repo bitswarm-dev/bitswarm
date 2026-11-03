@@ -6,7 +6,7 @@
 [![Docker pulls](https://img.shields.io/docker/pulls/dockerkeithics/bitswarm-server?label=docker%20pulls)](https://hub.docker.com/r/dockerkeithics/bitswarm-server)
 [![Platforms](https://img.shields.io/badge/platforms-amd64%20%7C%20arm64%20%7C%20arm%2Fv7%20%7C%20386-blue)](https://hub.docker.com/r/dockerkeithics/bitswarm-server/tags)
 
-Bitswarm is a self-hosted BitTorrent client with a web interface, built for people who are tired of managing downloads by hand. Many clients stop once the download finishes: finding new releases, fixing messy file names and sorting everything into folders are left to you, or to a pile of scripts. Bitswarm does those parts itself.
+Bitswarm is a web-based BitTorrent client, built for people who are tired of managing downloads by hand. Many clients stop once the download finishes: finding new releases, fixing messy file names and sorting everything into folders are left to you, or to a pile of scripts. Bitswarm does those parts itself.
 
 On top of the usual torrent list it adds automation that keeps your files organized: scheduled searches of websites, regex rename presets that can also move files into folders, tags, maintenance tasks, hooks that call an API or run a command, an execution log, API tokens and settings backup.
 
