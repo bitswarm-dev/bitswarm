@@ -34,6 +34,8 @@ This one needs no search terms. The page lists the files, and the schedule picks
 
 The page also lists Debian Edu, Mac and firmware images, and the filters leave those out. When Debian publishes a new point release, the file name changes, so the schedule sees it as new and adds it.
 
+<img src="screenshots/recipe-schedule-debian.png" alt="The New schedule editor filled in for the Debian netinst recipe, with a live preview where only the netinst image will download and the Edu and Mac images are filtered out">
+
 ## Ubuntu Server
 
 | Field | Value |
@@ -116,6 +118,8 @@ Type the sample name into **Test your regex** and check the result before you sa
 | Name | After | Result |
 |---|---|---|
 | `[Debian] Ubuntu - 2006 (latest) [919404B].iso` | `Ubuntu/MyDebian/Ubuntu-2006.iso` | Renamed |
+
+<img src="screenshots/recipe-rename.png" alt="The rename preset editor with the pattern, the replacement and the sample name Ubuntu/MyDebian/Ubuntu-2006.iso marked Renamed">
 
 How it reads:
 

@@ -45,6 +45,8 @@ Body:
 
 Use a `from` address on a domain you have set up for sending. Create the API token with only the permission it needs.
 
+<img src="screenshots/recipe-hook-cloudflare.png" alt="The New hook editor filled in for the Cloudflare Email recipe, with the account ID and API token written as secret references">
+
 ## Resend
 
 **Secrets:** `SWARM_SECRET_RESEND_KEY`
