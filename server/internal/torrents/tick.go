@@ -89,8 +89,7 @@ func (s *Service) Tick(ctx context.Context) error {
 		}
 	}
 
-	s.hist.Dl = trim(append(s.hist.Dl, td))
-	s.hist.Ul = trim(append(s.hist.Ul, tu))
+	s.pushHist(td, tu, chartWindow(set.SpeedWindow))
 
 	keep := ts[:0]
 	for _, t := range ts {
@@ -235,11 +234,70 @@ func (s *Service) simulate(ctx context.Context, ts []Torrent, set settings.Setti
 	return td, tu
 }
 
-func trim(a []float64) []float64 {
-	if len(a) > 90 {
-		return a[len(a)-90:]
+func trim(a []float64) []float64 { return trimTo(a, 90) }
+
+func trimTo(a []float64, n int) []float64 {
+	if len(a) > n {
+		return a[len(a)-n:]
 	}
 	return a
+}
+
+const (
+	DefaultChartWindow = 90
+	chartPoints        = 90
+)
+
+type chartAcc struct {
+	dl, ul float64
+	n      int
+}
+
+func chartWindow(v int) int {
+	if v < 30 || v > 3600 {
+		return DefaultChartWindow
+	}
+	return v
+}
+
+func chartStep(window int) int { return max(1, (window+chartPoints-1)/chartPoints) }
+
+func chartSlots(window int) int {
+	step := chartStep(window)
+	return (window + step - 1) / step
+}
+
+func (s *Service) pushHist(td, tu float64, window int) {
+	if window != s.chartW {
+		s.chartW, s.hist, s.acc = window, History{}, chartAcc{}
+	}
+	s.acc.dl += td
+	s.acc.ul += tu
+	s.acc.n++
+	if s.acc.n < chartStep(window) {
+		return
+	}
+	n := float64(s.acc.n)
+	slots := chartSlots(window)
+	s.hist.Dl = trimTo(append(s.hist.Dl, s.acc.dl/n), slots)
+	s.hist.Ul = trimTo(append(s.hist.Ul, s.acc.ul/n), slots)
+	s.acc = chartAcc{}
+}
+
+func (s *Service) chartHist(window int) History {
+	h := History{Dl: []float64{}, Ul: []float64{}}
+	if s.chartW != window {
+		return h
+	}
+	h.Dl = append(h.Dl, s.hist.Dl...)
+	h.Ul = append(h.Ul, s.hist.Ul...)
+	if s.acc.n > 0 {
+		n := float64(s.acc.n)
+		slots := chartSlots(window)
+		h.Dl = trimTo(append(h.Dl, s.acc.dl/n), slots)
+		h.Ul = trimTo(append(h.Ul, s.acc.ul/n), slots)
+	}
+	return h
 }
 
 func anyRatioLimit(ts []Torrent) bool {
@@ -299,6 +357,8 @@ type Stats struct {
 	Alt      bool    `json:"alt"`
 	AltOn    bool    `json:"altActive"`
 	Hist     History `json:"hist"`
+	HistWin  int     `json:"histWindow"`
+	HistStep int     `json:"histStep"`
 	Uptime   int64   `json:"uptime"`
 	Torrents int     `json:"torrents"`
 	Active   int     `json:"active"`
@@ -319,7 +379,7 @@ func (s *Service) Stats(ctx context.Context) (Stats, error) {
 	}
 	set := s.set.Get()
 	st := Stats{Free: s.free, Dht: s.dht, SessDl: s.sessDl, SessUl: s.sessUl, Alt: s.alt, AltOn: AltActive(set, s.alt, s.now()),
-		Hist:   History{Dl: append([]float64{}, s.hist.Dl...), Ul: append([]float64{}, s.hist.Ul...)},
+		Hist: s.chartHist(chartWindow(set.SpeedWindow)), HistWin: chartWindow(set.SpeedWindow), HistStep: chartStep(chartWindow(set.SpeedWindow)),
 		Uptime: int64(time.Since(s.started).Seconds()), Torrents: len(ts)}
 	st.Engine = s.EngineName()
 	for _, t := range ts {

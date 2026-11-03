@@ -132,6 +132,12 @@ export const SECTIONS: SectionDef[] = [
           f("limitLan", "check", "Apply rate limits to peers on my local network"),
         ],
       },
+      {
+        title: "Speed chart",
+        fields: [
+          f("speedWindow", "number", "Time shown", { unit: "seconds", min: 30, max: 3600, hint: "How far back the speed chart in the sidebar looks, from 30 seconds to 3600 (1 hour). For example 300 is 5 minutes and 900 is 15 minutes. The chart always uses the same memory, so a longer time averages more seconds into each point. Changing this restarts the chart." }),
+        ],
+      },
     ],
   },
   {

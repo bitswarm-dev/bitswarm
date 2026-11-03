@@ -1,4 +1,4 @@
-import { formatRate, MiB } from "@/utils/format";
+import { formatRate, formatSpan, MiB } from "@/utils/format";
 
 export const cssVar = (n: string) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
@@ -17,7 +17,14 @@ export function rng(seed: number) {
   return () => (s = (s * 16807) % 2147483647) / 2147483647;
 }
 
-export function drawLines(c: HTMLCanvasElement, hist: { dl: number[]; ul: number[] }, axes: boolean) {
+export interface LineSpan {
+  slots: number;
+  seconds: number;
+}
+
+export const DEFAULT_SPAN: LineSpan = { slots: 90, seconds: 90 };
+
+export function drawLines(c: HTMLCanvasElement, hist: { dl: number[]; ul: number[] }, axes: boolean, span: LineSpan = DEFAULT_SPAN) {
   const [x, w, h] = fit(c);
   x.clearRect(0, 0, w, h);
   const pad = axes ? { l: 58, r: 8, t: 8, b: 18 } : { l: 0, r: 0, t: 4, b: 2 };
@@ -41,7 +48,7 @@ export function drawLines(c: HTMLCanvasElement, hist: { dl: number[]; ul: number
     }
     x.textAlign = "left";
     x.textBaseline = "alphabetic";
-    x.fillText("−90 s", pad.l, h - 3);
+    x.fillText(`−${formatSpan(span.seconds)}`, pad.l, h - 3);
     x.textAlign = "right";
     x.fillText("now", w - pad.r, h - 3);
   }
@@ -49,7 +56,7 @@ export function drawLines(c: HTMLCanvasElement, hist: { dl: number[]; ul: number
   for (const [k, tok] of series) {
     const a = hist[k];
     if (a.length < 2) continue;
-    const px = (i: number) => pad.l + iw * (1 - (a.length - 1 - i) / 89);
+    const px = (i: number) => pad.l + iw * (1 - (a.length - 1 - i) / Math.max(1, span.slots - 1));
     const py = (v: number) => pad.t + ih - (ih * v) / max;
     const color = cssVar(tok);
     x.beginPath();

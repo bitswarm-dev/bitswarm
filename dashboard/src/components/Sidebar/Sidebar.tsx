@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUi, type GroupKey } from "@/app/ui";
@@ -15,6 +15,7 @@ import { useTasks } from "@/features/maintenance/queries";
 import { useSchedules } from "@/features/schedules/queries";
 import { useRenames } from "@/features/renames/queries";
 import { ManageTags } from "@/pages/tags/ManageTags";
+import { formatSpan } from "@/utils/format";
 
 interface GroupProps {
   id: GroupKey;
@@ -69,6 +70,9 @@ export function Sidebar() {
   const { data: torrents } = useTorrents();
   const { data: catalog } = useCatalog();
   const { data: stats } = useStats();
+  const chartSeconds = stats.histWindow ?? 90;
+  const chartSlots = Math.ceil(chartSeconds / (stats.histStep ?? 1));
+  const chartSpan = useMemo(() => ({ slots: chartSlots, seconds: chartSeconds }), [chartSlots, chartSeconds]);
   const { data: renames } = useRenames();
   const { data: schedules } = useSchedules();
   const { data: tasks } = useTasks();
@@ -153,9 +157,9 @@ export function Sidebar() {
         <div className="legend">
           <span className="d">Download</span>
           <span className="u">Upload</span>
-          <span>last 90 s</span>
+          <span>last {formatSpan(chartSeconds)}</span>
         </div>
-        <LineChart hist={stats.hist} axes={false} id="globalSpark" />
+        <LineChart hist={stats.hist} axes={false} id="globalSpark" span={chartSpan} />
       </div>
 
       <div className="group set-g">
