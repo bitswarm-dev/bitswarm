@@ -95,4 +95,4 @@ export const BLANK_HOOK: Omit<Hook, "id" | "count" | "last" | "lastEvent"> = {
 
 export const CURL_TEMPLATE = `curl -sf -X POST https://example.org/hooks/bitswarm \\
   -H 'Content-Type: application/json' \\
-  -d {{payload}}`;
+  --data-raw {{payload}}`;

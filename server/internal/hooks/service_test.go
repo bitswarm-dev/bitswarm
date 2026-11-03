@@ -321,7 +321,7 @@ func TestValidate(t *testing.T) {
 		{"no name", func(h *Hook) { h.Name = " " }, "Give the hook a name."},
 		{"bad kind", func(h *Hook) { h.Kind = "x" }, "call an API, run a command or run curl"},
 		{"curl ok", func(h *Hook) {
-			*h = Hook{Kind: "curl", Name: "c", Cmd: "curl -X POST https://example.org/h -d {{torrent.name}}", Timeout: 5, Events: []string{"torrent.added"}}
+			*h = Hook{Kind: "curl", Name: "c", Cmd: "curl -X POST https://example.org/h -d name={{torrent.name}}", Timeout: 5, Events: []string{"torrent.added"}}
 		}, ""},
 		{"curl must start with curl", func(h *Hook) {
 			*h = Hook{Kind: "curl", Name: "c", Cmd: "wget https://example.org", Timeout: 5, Events: []string{"torrent.added"}}
@@ -538,7 +538,7 @@ func TestDelivery_CurlHook(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	h := Hook{Kind: "curl", Name: "C", Cmd: "curl -sf -X POST " + srv.URL + " -H 'X-Test: yes' --data {{torrent.name}}", Timeout: 10, Events: []string{"torrent.completed"}, Enabled: true}
+	h := Hook{Kind: "curl", Name: "C", Cmd: "curl -sf -X POST " + srv.URL + " -H 'X-Test: yes' --data-raw name={{torrent.name}}", Timeout: 10, Events: []string{"torrent.completed"}, Enabled: true}
 
 	off, _ := newSvc(t, false)
 	v, _ := off.Create(ctx, h)
@@ -562,7 +562,7 @@ func TestDelivery_CurlHook(t *testing.T) {
 	}
 	mu.Lock()
 	defer mu.Unlock()
-	if got.method != "POST" || got.body != evil || got.event != "yes" {
+	if got.method != "POST" || got.body != "name="+evil || got.event != "yes" {
 		t.Errorf("server saw %+v", got)
 	}
 }
@@ -585,5 +585,23 @@ func TestBuild_CurlNeutralizesOptionsAndFiles(t *testing.T) {
 	c := Build(Hook{Kind: "cmd", Cmd: "echo {{torrent.name}}", Timeout: 5}, "torrent.completed", map[string]any{"torrent": torrentInfo("@x", "")}, time.Unix(0, 0))
 	if c.Command != "echo '@x'" {
 		t.Errorf("command hooks must stay unchanged, got %s", c.Command)
+	}
+}
+
+func TestDelivery_CurlRefusesUnsafePlaceholders(t *testing.T) {
+	ctx := context.Background()
+	svc, _ := newSvc(t, true)
+	v, err := svc.Create(ctx, Hook{Kind: "curl", Name: "C", Cmd: "curl -sf https://example.org -d name={{torrent.name}}", Timeout: 5, Events: []string{"torrent.completed"}, Enabled: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := svc.Create(ctx, Hook{Kind: "curl", Name: "Bad", Cmd: "curl --data-urlencode {{torrent.name}} https://example.org", Timeout: 5, Events: []string{"torrent.completed"}}); err == nil || !strings.Contains(err.Error(), "equals sign") {
+		t.Errorf("save error = %v", err)
+	}
+	stored, _ := svc.hooks.Get(ctx, v.ID)
+	stored.Cmd = "curl --data-urlencode {{torrent.name}} https://example.org"
+	_ = svc.hooks.Put(ctx, stored)
+	if d, _ := svc.Test(ctx, v.ID); d.Status != "failed" || !strings.Contains(d.Error, "not run") {
+		t.Errorf("an unsafe saved hook ran: %+v", d)
 	}
 }

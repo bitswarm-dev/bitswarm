@@ -152,6 +152,8 @@ func (s *Service) validate(ctx context.Context, h Hook) error {
 			return Invalid("Enter the command to run.")
 		case h.Kind == "curl" && !curlStartRe.MatchString(h.Cmd):
 			return Invalid("A curl hook must start with curl, such as curl -X POST https://example.org/hook.")
+		case h.Kind == "curl" && curlProblem(h.Cmd) != "":
+			return Invalid(strings.ToUpper(curlProblem(h.Cmd)[:1]) + curlProblem(h.Cmd)[1:])
 		case h.Cwd != "" && !cwdRe.MatchString(h.Cwd):
 			return Invalid("The working folder must be a full path, such as /home/me/scripts.")
 		case len(h.Events) == 0:
@@ -341,7 +343,11 @@ func (s *Service) deliver(ctx context.Context, h Hook, event string, data map[st
 	start := time.Now()
 
 	if h.Shell() {
-		s.runCommand(ctx, &d)
+		if p := curlProblem(h.Cmd); h.Kind == "curl" && p != "" {
+			d.Status, d.Error = "failed", "not run, "+p
+		} else {
+			s.runCommand(ctx, &d)
+		}
 	} else {
 		if h.Secret != "" {
 			d.Headers = append(d.Headers, [2]string{"X-Swarm-Signature", Sign(h.Secret, d.Body)})
