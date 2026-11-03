@@ -110,3 +110,13 @@ func TestHandler(t *testing.T) {
 		}
 	}
 }
+
+func TestURLFeed_ErrorsDoNotRevealTheQuery(t *testing.T) {
+	_, err := URLFeed("http://127.0.0.1:1/feed.json?token=SECRET-KEY")(context.Background())
+	if err == nil {
+		t.Fatal("expected an error")
+	}
+	if strings.Contains(err.Error(), "SECRET-KEY") || !strings.Contains(err.Error(), "couldn’t reach the release feed") {
+		t.Errorf("error = %v", err)
+	}
+}

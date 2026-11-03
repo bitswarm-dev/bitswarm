@@ -2,6 +2,7 @@ package schedules
 
 import (
 	"bitswarm/server/internal/buildinfo"
+	"bitswarm/server/internal/redact"
 	"context"
 	"errors"
 	"fmt"
@@ -68,16 +69,16 @@ func HTTPFetcher() Fetcher {
 	return func(ctx context.Context, raw string) (string, error) {
 		u, err := url.Parse(raw)
 		if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
-			return "", fmt.Errorf("%q isn’t an http or https address", raw)
+			return "", fmt.Errorf("%q isn’t an http or https address", redact.URL(raw))
 		}
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, raw, nil)
 		if err != nil {
-			return "", err
+			return "", errors.New(redact.Err(err))
 		}
 		req.Header.Set("User-Agent", "Bitswarm/"+buildinfo.Version)
 		resp, err := client.Do(req)
 		if err != nil {
-			return "", fmt.Errorf("couldn’t reach %s: %v", u.Host, err)
+			return "", fmt.Errorf("couldn’t reach %s: %s", u.Host, redact.Err(err))
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode >= 400 {

@@ -622,3 +622,26 @@ func TestCreate_EmptyPathUsesSystemDefault(t *testing.T) {
 		t.Fatalf("Create() path = %q, err = %v, want empty path and no error", v.Path, err)
 	}
 }
+
+func TestHTTPFetcher_ErrorsDoNotRevealTheQuery(t *testing.T) {
+	fetch := HTTPFetcher()
+	tests := []struct {
+		name string
+		url  string
+	}{
+		{"unreachable host", "http://127.0.0.1:1/search?apikey=SECRET-KEY&q=ubuntu"},
+		{"credentials in the address", "http://user:SECRET-KEY@127.0.0.1:1/search"},
+		{"unsupported scheme", "ftp://example.com/search?apikey=SECRET-KEY"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := fetch(context.Background(), tc.url)
+			if err == nil {
+				t.Fatal("expected an error")
+			}
+			if strings.Contains(err.Error(), "SECRET-KEY") {
+				t.Errorf("the error reveals the key: %v", err)
+			}
+		})
+	}
+}
