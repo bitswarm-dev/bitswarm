@@ -43,7 +43,7 @@ A schedule searches a website on a timer, reads the magnet or `.torrent` links o
 
 <img src="docs/screenshots/scheduled-dark.png" alt="Bitswarm scheduled downloads page in the dark theme">
 
-Copy-paste settings for a distribution's download page, a search with a list of titles and a rename preset are in [Scheduled download recipes](docs/schedule-recipes.md).
+Copy-paste settings for a distribution's download page, a search with a list of terms and a rename preset are in [Scheduled download recipes](docs/schedule-recipes.md).
 
 ### Auto rename
 

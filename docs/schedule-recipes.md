@@ -51,35 +51,35 @@ The page also lists Debian Edu, Mac and firmware images, and the filters leave t
 
 The folder lists several point releases of the same image (24.04.3, 24.04.4, 24.04.5). With **Max new per run** at `1`, the schedule adds one per run until it has them all. Look at the preview, and set **Skip if name contains** to the versions you don't want, such as `24.04.3,24.04.4`.
 
-## Search a site for a list of titles
+## Search a site with a list of searches
 
-Use this when a site has a search page that returns magnet links. Put `{query}` in the address where the search words go, and write one search per line in **Search terms**. Each line is fetched separately, one after the other.
+Use this when a site has a search page that returns magnet links. Each line in **Search terms** becomes its own search. Put `{query}` in the address where the search words go, and write one search per line in **Search terms**. Each line is fetched separately, one after the other.
 
 | Field | Value |
 |---|---|
-| Schedule name | `My watch list` |
+| Schedule name | `My ISO list` |
 | Search URL | `https://tracker.example.org/search?q={query}` |
-| Search terms | one title per line (see below) |
+| Search terms | one search per line (see below) |
 | CSS selector | `a[href^='magnet:']` |
 | Read link from | `href` |
 | Link type | `Magnet only` |
-| Name must contain | `1080p` |
-| Skip if name contains | `cam,hdts` |
+| Name must contain | `amd64` |
+| Skip if name contains | `beta,arm64` |
 | Max new per run | `5` |
 | Run every | `6` `hours` |
 
 Search terms:
 
 ```text
-First title I want
-Second title I want
-Third title I want
+debian netinst
+ubuntu server
+fedora workstation
 ```
 
 - Replace `tracker.example.org` with a site you may use. Open its search in your browser, copy the address, and swap the search words for `{query}`.
 - The selector depends on the site's HTML. `a[href^='magnet:']` matches every magnet link on the page. If the page has other magnet links you don't want, narrow it, for example `table.results a[href^='magnet:']`. Check the preview.
 - **Name must contain** needs every word listed, separated by commas. **Skip if name contains** drops a link if it has any word listed.
-- Search words are URL-encoded for you, so a title with spaces or punctuation works.
+- Search words are URL-encoded for you, so a line with spaces or punctuation works.
 
 ## One page of results, no search terms
 
