@@ -3,13 +3,13 @@ module bitswarm/server
 go 1.26.0
 
 require (
-	github.com/anacrolix/dht/v2 v2.23.0
-	github.com/anacrolix/generics v0.1.1-0.20251125230353-15d98d46693b
+	github.com/anacrolix/dht/v2 v2.24.0
+	github.com/anacrolix/generics v0.2.0
 	github.com/anacrolix/torrent v1.61.0
-	github.com/andybalholm/cascadia v1.3.3
-	github.com/gofiber/fiber/v2 v2.52.5
+	github.com/andybalholm/cascadia v1.3.5
+	github.com/gofiber/fiber/v2 v2.52.16
 	golang.org/x/net v0.62.0
-	golang.org/x/time v0.14.0
+	golang.org/x/time v0.16.0
 	modernc.org/sqlite v1.61.1
 )
 
@@ -30,7 +30,7 @@ require (
 	github.com/anacrolix/sync v0.5.5-0.20251119100342-d78dd1f686f1 // indirect
 	github.com/anacrolix/upnp v0.1.4 // indirect
 	github.com/anacrolix/utp v0.1.0 // indirect
-	github.com/andybalholm/brotli v1.0.5 // indirect
+	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/benbjohnson/immutable v0.4.1-0.20221220213129-8932b999621d // indirect
 	github.com/bits-and-blooms/bitset v1.2.2 // indirect
@@ -48,11 +48,11 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
-	github.com/klauspost/compress v1.17.0 // indirect
+	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.3 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
-	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
