@@ -58,9 +58,13 @@ A hook runs when something happens in Bitswarm. Pick the events, pick what to do
 - **Run a command:** run a script on the machine where Bitswarm runs. It gets the event as environment variables and, if you want, as JSON on its standard input. Placeholder values are quoted for the shell automatically, so a torrent named `x'; rm -rf ~ #` arrives as one plain argument. Command hooks are off until you start the server with `SWARM_ALLOW_COMMANDS=1`, and in Docker they run inside the server container.
 - **Test before you trust it:** every hook has a Send test button and a preview of the exact request. Recent deliveries are listed on the Hooks page, with their status, so you can see what was sent, or "Not sent" and "Not run" when it wasn't.
 
-| Call an API | Run a command |
-|---|---|
-| <img src="docs/screenshots/hooks-api-email.png" alt="Editing an API hook that sends an email when a download finishes" width="420"> | <img src="docs/screenshots/hooks-cmd.png" alt="Editing a command hook that runs a script when a download finishes" width="420"> |
+**Call an API.** The editor for the email example below, with the request preview at the bottom:
+
+<img src="docs/screenshots/hooks-api-email.png" alt="Editing an API hook that sends an email when a download finishes, with a preview of the request">
+
+**Run a command.** The same editor for a script that runs when a download finishes:
+
+<img src="docs/screenshots/hooks-cmd.png" alt="Editing a command hook that runs a script when a download finishes">
 
 Command hooks can do anything the server user can do, and API hooks send data off your machine. Use hooks at your own risk, and read the warning on the Hooks page.
 
