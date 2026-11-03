@@ -8,7 +8,7 @@
 
 Bitswarm is a self-hosted BitTorrent client with a web interface, built for people who are tired of managing downloads by hand. Many clients stop once the download finishes: finding new releases, fixing messy file names and sorting everything into folders are left to you, or to a pile of scripts. Bitswarm does those parts itself.
 
-It downloads and seeds with a built-in engine, so there is nothing else to install. On top of the usual torrent list it adds automation that keeps your files organized: scheduled searches of websites, regex rename presets that can also move files into folders, tags, maintenance tasks, hooks that call an API or run a command, an execution log, API tokens and settings backup.
+On top of the usual torrent list it adds automation that keeps your files organized: scheduled searches of websites, regex rename presets that can also move files into folders, tags, maintenance tasks, hooks that call an API or run a command, an execution log, API tokens and settings backup.
 
 > Bitswarm is a general-purpose BitTorrent client. It isn't built for piracy, and it doesn't provide, host or index content. Only download and share what you have the right to. You are responsible for following your local laws. This is not legal advice, and the authors aren't liable for how you use it.
 
