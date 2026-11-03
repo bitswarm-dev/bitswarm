@@ -105,7 +105,7 @@ export function HookEditor({ hook, onClose, onSaved }: Props) {
               <label className="field">
                 <span>{curl ? "curl command" : "Command"}</span>
                 <textarea ref={refs.cmd} rows={curl ? 5 : 2} value={form.cmd} onFocus={() => (last.current = "cmd")} onChange={(e) => set("cmd", e.target.value)} spellCheck={false} placeholder={curl ? CURL_TEMPLATE : "/home/me/scripts/done.sh {{torrent.path}} {{torrent.name}}"} />
-                <small>{curl ? "Starts the curl program on the machine where Bitswarm runs, so curl must be installed there. " : ""}Runs on the machine where Bitswarm runs, with Bitswarm’s permissions. Placeholder values are quoted for the shell automatically, so don’t put quotes around them.</small>
+                <small>{curl ? <>Starts the real curl program on the machine where Bitswarm runs, with Bitswarm’s permissions, so curl must be installed there. Placeholder values are quoted for the shell automatically, so don’t put quotes around them. Each placeholder has to come right after an equals sign, such as <code>name={"{{torrent.name}}"}</code>, or sit in a URL or a <code>-H</code> value.</> : "Runs on the machine where Bitswarm runs, with Bitswarm’s permissions. Placeholder values are quoted for the shell automatically, so don’t put quotes around them."}</small>
               </label>
               <div className="row2">
                 <label className="field">

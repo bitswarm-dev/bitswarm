@@ -67,6 +67,10 @@ A hook runs when something happens in Bitswarm. Pick the events, pick what to do
 
 <img src="docs/screenshots/hooks-cmd.png" alt="Editing a command hook that runs a script when a download finishes">
 
+**Run curl.** The same editor with a curl command. The template posts the whole event as JSON, and the help text under the box explains where placeholders may go:
+
+<img src="docs/screenshots/hooks-curl.png" alt="Editing a hook that runs curl when a download finishes">
+
 Command hooks can do anything the server user can do, and API hooks send data off your machine. Use hooks at your own risk, and read the warning on the Hooks page.
 
 #### Example: email when a download starts and finishes
