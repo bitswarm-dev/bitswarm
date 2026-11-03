@@ -1,3 +1,4 @@
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useUi } from "@/app/ui";
 import { useToast } from "@/components/Toasts/Toasts";
@@ -6,15 +7,24 @@ import { useClearLog } from "@/features/log/mutations";
 import { useLog } from "@/features/log/queries";
 import { plural } from "@/utils/format";
 import { useCopy } from "@/pages/torrents/ContextMenu";
+import { useUrlText } from "@/utils/useUrlText";
+import { levelsOf, toLogSearch } from "./logSearch";
 
 const LEVELS: [Level, string][] = [["error", "Errors"], ["warn", "Warnings"], ["info", "Info"], ["debug", "Debug"]];
 const NAME: Record<Level, string> = { error: "Error", warn: "Warning", info: "Info", debug: "Debug" };
 const entries = (n: number) => plural(n, "entry").replace("entrys", "entries");
 
 export function Log() {
-  const [levels, setLevels] = useState<Level[]>(["error", "warn", "info"]);
-  const [src, setSrc] = useState("");
-  const [q, setQ] = useState("");
+  const search = useSearch({ from: "/log" });
+  const navigate = useNavigate({ from: "/log" });
+  const levels = levelsOf(search);
+  const src = search.source ?? "";
+  const q = search.text ?? "";
+  const change = (next: Partial<{ levels: Level[]; source: string; text: string }>) =>
+    void navigate({ search: toLogSearch({ levels, source: src, text: q, ...next }), replace: true });
+  const setLevels = (fn: (cur: Level[]) => Level[]) => change({ levels: fn(levels) });
+  const setSrc = (source: string) => change({ source });
+  const [qText, setQText] = useUrlText(q, (text) => change({ text }));
   const [confirming, setConfirming] = useState(false);
   const { data } = useLog({ levels, src, q });
   const ui = useUi();
@@ -59,7 +69,7 @@ export function Log() {
         </select>
         <label className="search">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-          <input type="search" placeholder="Search the log" aria-label="Search the log" value={q} onChange={(e) => setQ(e.target.value)} />
+          <input type="search" placeholder="Search the log" aria-label="Search the log" value={qText} onChange={(e) => setQText(e.target.value)} />
         </label>
         <span style={{ flex: 1 }} />
         <button type="button" className="btn" onClick={copyShown}>Copy shown</button>

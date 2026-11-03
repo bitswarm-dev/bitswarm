@@ -1,4 +1,4 @@
-import { createRootRoute, createRoute, createRouter } from "@tanstack/react-router";
+import { createRootRoute, createRoute, createRouter, defaultStringifySearch } from "@tanstack/react-router";
 import { Suspense, type ReactNode } from "react";
 import { PageSkeleton } from "@/components/PageSkeleton/PageSkeleton";
 import { useAuthStatus } from "@/features/auth/queries";
@@ -15,6 +15,8 @@ import { Renames } from "@/pages/renames/Renames";
 import { Settings } from "@/pages/settings/Settings";
 import { Torrents } from "@/pages/torrents/Torrents";
 import { TorrentsSkeleton } from "@/pages/torrents/TorrentsSkeleton";
+import { parseLogSearch } from "@/pages/log/logSearch";
+import { parseListSearch } from "./listView";
 import { Layout } from "./Layout";
 
 const inPage = (page: ReactNode, fallback: ReactNode = <PageSkeleton />) => <Suspense fallback={fallback}>{page}</Suspense>;
@@ -30,18 +32,19 @@ const rootRoute = createRootRoute({
 });
 
 const routeTree = rootRoute.addChildren([
-  createRoute({ getParentRoute: () => rootRoute, path: "/", component: () => inPage(<Torrents />, <TorrentsSkeleton />) }),
+  createRoute({ getParentRoute: () => rootRoute, path: "/", validateSearch: parseListSearch, component: () => inPage(<Torrents />, <TorrentsSkeleton />) }),
   createRoute({ getParentRoute: () => rootRoute, path: "/schedules", component: () => inPage(<Schedules />) }),
   createRoute({ getParentRoute: () => rootRoute, path: "/renames", component: () => inPage(<Renames />) }),
   createRoute({ getParentRoute: () => rootRoute, path: "/maint", component: () => inPage(<Maintenance />) }),
   createRoute({ getParentRoute: () => rootRoute, path: "/hooks", component: () => <HooksGate>{inPage(<Hooks />)}</HooksGate> }),
-  createRoute({ getParentRoute: () => rootRoute, path: "/log", component: () => inPage(<Log />) }),
+  createRoute({ getParentRoute: () => rootRoute, path: "/log", validateSearch: parseLogSearch, component: () => inPage(<Log />) }),
   createRoute({ getParentRoute: () => rootRoute, path: "/tokens", component: () => inPage(<Tokens />) }),
   createRoute({ getParentRoute: () => rootRoute, path: "/settings", component: () => inPage(<Settings />) }),
+  createRoute({ getParentRoute: () => rootRoute, path: "/settings/$section", component: () => inPage(<Settings />) }),
   createRoute({ getParentRoute: () => rootRoute, path: "/about", component: () => inPage(<About />) }),
 ]);
 
-export const router = createRouter({ routeTree });
+export const router = createRouter({ routeTree, stringifySearch: (search) => defaultStringifySearch(search).replaceAll("%2C", ",") });
 
 declare module "@tanstack/react-router" {
   interface Register {

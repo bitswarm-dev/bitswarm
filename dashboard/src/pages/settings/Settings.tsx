@@ -1,3 +1,4 @@
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useUi } from "@/app/ui";
 import { useToast } from "@/components/Toasts/Toasts";
@@ -29,7 +30,10 @@ export function Settings() {
   const ui = useUi();
   const [draft, setDraft] = useState<SettingsData>(saved);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [section, setSection] = useState("downloads");
+  const params = useParams({ strict: false }) as { section?: string };
+  const navigate = useNavigate();
+  const section = SECTIONS.some((s) => s.id === params.section) ? (params.section as string) : "downloads";
+  const setSection = (id: string, replace = false) => void navigate({ to: "/settings/$section", params: { section: id }, replace });
   const base = useRef(saved);
 
   useEffect(() => {
@@ -64,7 +68,7 @@ export function Settings() {
         setErrors(Object.keys(errs).length ? errs : { _: e.message });
         const first = Object.keys(errs)[0];
         const sec = first ? sectionOf(first) : undefined;
-        if (sec) setSection(sec);
+        if (sec) setSection(sec, true);
         if (first) requestAnimationFrame(() => document.getElementById(`set-${first}`)?.focus());
       },
     });

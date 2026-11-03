@@ -1,5 +1,6 @@
 import type { MouseEvent } from "react";
 import { useEffect, useRef } from "react";
+import { defaultDir, useActiveId, useListView } from "@/app/listView";
 import { useUi, type SortKey } from "@/app/ui";
 import { STATUS_TEXT } from "@/features/torrents/filters";
 import type { Torrent } from "@/features/torrents/types";
@@ -61,6 +62,8 @@ function mobileLine(t: Torrent): React.ReactNode {
 
 export function TorrentList({ rows, onSelect, onContext, onToggle, onRemoveKey, onSpace, onDoubleClick }: Props) {
   const ui = useUi();
+  const view = useListView();
+  const activeId = useActiveId();
   const allRef = useRef<HTMLInputElement>(null);
   const sel = new Set(ui.sel);
   const selectedShown = rows.filter((t) => sel.has(t.id)).length;
@@ -69,8 +72,7 @@ export function TorrentList({ rows, onSelect, onContext, onToggle, onRemoveKey, 
     if (allRef.current) allRef.current.indeterminate = selectedShown > 0 && selectedShown < rows.length;
   }, [selectedShown, rows.length]);
 
-  const sortBy = (key: SortKey) =>
-    ui.patch({ sort: { key, dir: ui.sort.key === key ? (-ui.sort.dir as 1 | -1) : key === "name" || key === "status" || key === "queue" ? 1 : -1 } });
+  const sortBy = (key: SortKey) => view.go({ sort: { key, dir: view.sort.key === key ? (-view.sort.dir as 1 | -1) : defaultDir(key) } }, { replace: true });
 
   const click = (e: MouseEvent, t: Torrent) => {
     if ((e.target as HTMLElement).closest(".c-chk")) return;
@@ -121,7 +123,7 @@ export function TorrentList({ rows, onSelect, onContext, onToggle, onRemoveKey, 
             disabled={rows.length === 0}
             onChange={(e) => {
               const ids = e.target.checked ? rows.map((r) => r.id) : [];
-              onSelect(ids, ids.includes(ui.active ?? -1) ? (ui.active as number) : (ids[0] ?? ui.active ?? 0), ui.anchor);
+              onSelect(ids, ids.includes(activeId ?? -1) ? (activeId as number) : (ids[0] ?? activeId ?? 0), ui.anchor);
             }}
           />
         </label>
@@ -129,18 +131,18 @@ export function TorrentList({ rows, onSelect, onContext, onToggle, onRemoveKey, 
           <button
             key={k}
             className={`${c} c-${k}`}
-            aria-sort={ui.sort.key === k ? (ui.sort.dir > 0 ? "ascending" : "descending") : undefined}
+            aria-sort={view.sort.key === k ? (view.sort.dir > 0 ? "ascending" : "descending") : undefined}
             onClick={() => sortBy(k)}
           >
             {label}
-            {ui.sort.key === k ? (ui.sort.dir > 0 ? " ↑" : " ↓") : ""}
+            {view.sort.key === k ? (view.sort.dir > 0 ? " ↑" : " ↓") : ""}
           </button>
         ))}
       </div>
       {rows.length === 0 ? (
         <div className="empty">
           <strong>No torrents here</strong>
-          {ui.q ? `Nothing matches “${ui.q}”.` : "Add a magnet link or .torrent file to get started."}
+          {view.q ? `Nothing matches “${view.q}”.` : "Add a magnet link or .torrent file to get started."}
         </div>
       ) : (
         rows.map((t) => {

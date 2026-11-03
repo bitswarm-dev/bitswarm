@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation } from "@tanstack/react-router";
+import { NO_TAG, useListView } from "@/app/listView";
 import { useNav } from "@/app/nav";
 import { useUi, type GroupKey } from "@/app/ui";
 import { Svg } from "@/components/Icons/Svg";
@@ -65,6 +66,7 @@ type Page = keyof typeof NAV_ICON;
 
 export function Sidebar() {
   const ui = useUi();
+  const view = useListView();
   const [managing, setManaging] = useState(false);
   const nav = useNav();
   const { pathname } = useLocation();
@@ -84,12 +86,9 @@ export function Sidebar() {
   const logCount = Object.values(errLog.counts).reduce((a, b) => a + b, 0);
   const newErrors = (errLog.entries[0]?.t ?? 0) > ui.logSeen;
   const onTorrents = pathname === "/";
-  const page = pathname.replace("/", "");
+  const page = pathname.split("/")[1] ?? "";
 
-  const goTorrents = (p: Partial<{ filter: string; tag: string | null }>) => {
-    ui.patch(p);
-    nav("/");
-  };
+  const goTorrents = (p: Partial<{ filter: string; tag: string | null }>) => view.go(p);
 
   const link = (to: Page, label: string, extra?: React.ReactNode) => (
     <button className="fbtn" aria-pressed={page === to} onClick={() => nav(`/${to}`)}>
@@ -99,7 +98,7 @@ export function Sidebar() {
     </button>
   );
 
-  const filterLabel = FILTERS.find((f) => f.key === ui.filter)?.label ?? "";
+  const filterLabel = FILTERS.find((f) => f.key === view.filter)?.label ?? "";
   const automationNames: Record<string, string> = { schedules: "Scheduled", renames: "Auto rename", maint: "Maintenance" };
   const developerNames: Record<string, string> = { hooks: "Hooks", log: "Execution log", tokens: "API tokens" };
 
@@ -107,7 +106,7 @@ export function Sidebar() {
     <aside>
       <Group id="status" title="Status" controls="filters" summary={onTorrents ? filterLabel : ""}>
         {FILTERS.map((f) => (
-          <button key={f.key} className="fbtn" aria-pressed={onTorrents && ui.filter === f.key} onClick={() => goTorrents({ filter: f.key })}>
+          <button key={f.key} className="fbtn" aria-pressed={onTorrents && view.filter === f.key} onClick={() => goTorrents({ filter: f.key })}>
             <span className="sw" style={{ background: f.color }} />
             {f.label}
             <span className="n">{torrents.filter(f.test).length}</span>
@@ -127,20 +126,20 @@ export function Sidebar() {
         controls="tagList"
         className="labels-g"
         action={<button className="gh-btn" onClick={() => setManaging(true)}>Manage</button>}
-        summary={onTorrents ? (ui.tag === "__none" ? "Untagged" : ui.tag ? `#${ui.tag}` : "Any tag") : ""}
+        summary={onTorrents ? (view.tag === NO_TAG ? "Untagged" : view.tag ? `#${view.tag}` : "Any tag") : ""}
       >
-        <button className="fbtn" aria-pressed={onTorrents && !ui.tag} onClick={() => goTorrents({ tag: null })}>
+        <button className="fbtn" aria-pressed={onTorrents && !view.tag} onClick={() => goTorrents({ tag: null })}>
           <span className="sw" style={{ background: "var(--line)" }} />
           Any tag
           <span className="n">{torrents.length}</span>
         </button>
-        <button className="fbtn" aria-pressed={onTorrents && ui.tag === "__none"} onClick={() => goTorrents({ tag: "__none" })}>
+        <button className="fbtn" aria-pressed={onTorrents && view.tag === NO_TAG} onClick={() => goTorrents({ tag: NO_TAG })}>
           <span className="sw0" />
           Untagged
           <span className="n">{torrents.filter((t) => t.tags.length === 0).length}</span>
         </button>
         {catalog.tags.map((g) => (
-          <button key={g} className="fbtn" aria-pressed={onTorrents && ui.tag === g} onClick={() => goTorrents({ tag: g })}>
+          <button key={g} className="fbtn" aria-pressed={onTorrents && view.tag === g} onClick={() => goTorrents({ tag: g })}>
             <span className="taghash" aria-hidden="true">#</span>
             {g}
             <span className="n">{torrents.filter((t) => t.tags.includes(g)).length}</span>
