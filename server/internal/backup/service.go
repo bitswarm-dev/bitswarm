@@ -170,7 +170,7 @@ func (s *Service) Export(ctx context.Context, r ExportReq) (ExportResult, error)
 		items := []map[string]any{}
 		for _, h := range hs {
 			o := map[string]any{"name": h.Name, "kind": h.Kind, "events": h.Events, "tag": h.Tag, "retries": h.Retries, "enabled": h.Enabled}
-			if h.Kind == "cmd" {
+			if h.Shell() {
 				o["command"], o["cwd"], o["timeout"], o["stdin"] = h.Cmd, h.Cwd, h.Timeout, h.Stdin
 			} else {
 				headers := h.Headers
@@ -274,7 +274,7 @@ func (s *Service) valid(part string, item any) bool {
 		if text(m["name"]) == "" || !hasEvents {
 			return false
 		}
-		if text(m["kind"]) == "cmd" {
+		if k := text(m["kind"]); k == "cmd" || k == "curl" {
 			return text(m["command"]) != ""
 		}
 		return text(m["url"]) != ""
@@ -554,7 +554,7 @@ func (s *Service) Apply(ctx context.Context, r ApplyReq) (Result, error) {
 					events = append(events, ev)
 				}
 			}
-			h := hooks.Hook{Name: name, Kind: oneOf(m["kind"], []string{"cmd"}, "api"), Method: oneOf(m["method"], []string{"PUT", "PATCH", "GET"}, "POST"), URL: text(m["url"]),
+			h := hooks.Hook{Name: name, Kind: oneOf(m["kind"], []string{"cmd", "curl"}, "api"), Method: oneOf(m["method"], []string{"PUT", "PATCH", "GET"}, "POST"), URL: text(m["url"]),
 				Headers: fmt.Sprint(orEmpty(m["headers"])), Body: fmt.Sprint(orEmpty(m["body"])), Cmd: text(m["command"]), Cwd: text(m["cwd"]), Timeout: intOf(m["timeout"], 1, 3600, 60),
 				Stdin: m["stdin"] == true, Events: events, Tag: s.ensureTag(m["tag"]), Retries: intOf(m["retries"], 0, 10, 3), Secret: text(m["secret"])}
 			if err := s.Hooks.Import(ctx, h); err != nil {

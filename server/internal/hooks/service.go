@@ -130,8 +130,8 @@ func (s *Service) validate(ctx context.Context, h Hook) error {
 	if strings.TrimSpace(h.Name) == "" {
 		return Invalid("Give the hook a name.")
 	}
-	if h.Kind != "api" && h.Kind != "cmd" {
-		return Invalid("Choose whether to call an API or run a command.")
+	if h.Kind != "api" && !h.Shell() {
+		return Invalid("Choose whether to call an API, run a command or run curl.")
 	}
 	for _, e := range h.Events {
 		if !slices.Contains(Events, e) {
@@ -139,13 +139,19 @@ func (s *Service) validate(ctx context.Context, h Hook) error {
 		}
 	}
 	retries := Invalid("Retries must be a whole number from 0 to 10.")
-	if h.Kind == "cmd" {
+	if h.Shell() {
 		if hasSecretRef(h.Cmd) {
-			return Invalid("Command hooks can’t use {{secret.NAME}}. API hooks can. In a command, read the key from your own file or environment instead.")
+			who := "Command"
+			if h.Kind == "curl" {
+				who = "Curl"
+			}
+			return Invalid(who + " hooks can’t use {{secret.NAME}}. API hooks can. In a command, read the key from your own file or environment instead.")
 		}
 		switch {
 		case strings.TrimSpace(h.Cmd) == "":
 			return Invalid("Enter the command to run.")
+		case h.Kind == "curl" && !curlStartRe.MatchString(h.Cmd):
+			return Invalid("A curl hook must start with curl, such as curl -X POST https://example.org/hook.")
 		case h.Cwd != "" && !cwdRe.MatchString(h.Cwd):
 			return Invalid("The working folder must be a full path, such as /home/me/scripts.")
 		case len(h.Events) == 0:
@@ -269,11 +275,11 @@ func (s *Service) Preview(ctx context.Context, h Hook) Preview {
 	data := s.sample(ctx, event)
 	d := Build(h, event, data, s.now())
 	vars := Vars(event, data, s.now())
-	p := Preview{Event: event, Text: maskDelivery(d).Text, Unknown: []string{}, Empty: []string{}, Signed: h.Kind != "cmd" && h.Secret != "", MissingSecrets: []string{}}
-	if h.Kind != "cmd" {
+	p := Preview{Event: event, Text: maskDelivery(d).Text, Unknown: []string{}, Empty: []string{}, Signed: !h.Shell() && h.Secret != "", MissingSecrets: []string{}}
+	if !h.Shell() {
 		p.MissingSecrets = MissingSecrets(h)
 	}
-	if h.Kind != "cmd" && h.Secret != "" {
+	if !h.Shell() && h.Secret != "" {
 		p.Text += "\n(X-Swarm-Signature: sha256=… is added when sent)"
 	}
 	for _, name := range Placeholders_(h) {
@@ -334,7 +340,7 @@ func (s *Service) deliver(ctx context.Context, h Hook, event string, data map[st
 	d.Test = test
 	start := time.Now()
 
-	if h.Kind == "cmd" {
+	if h.Shell() {
 		s.runCommand(ctx, &d)
 	} else {
 		if h.Secret != "" {
@@ -365,7 +371,7 @@ func (s *Service) deliver(ctx context.Context, h Hook, event string, data map[st
 	if d.Status == "failed" {
 		level = "warn"
 	}
-	s.log.Add(level, "Hooks", fmt.Sprintf("%s: %s for %s%s. %s", h.Name, map[string]string{"cmd": "command", "api": "request"}[h.Kind], event, map[bool]string{true: " (test)"}[test], StatusText(d)))
+	s.log.Add(level, "Hooks", fmt.Sprintf("%s: %s for %s%s. %s", h.Name, map[string]string{"cmd": "command", "curl": "curl command", "api": "request"}[h.Kind], event, map[bool]string{true: " (test)"}[test], StatusText(d)))
 	return d
 }
 
@@ -500,10 +506,12 @@ func (s *Service) Seed(ctx context.Context) error {
 			Body: "{{payload}}", Events: slices.Clone(Events), Secret: "change-me", Retries: 5, Timeout: 60},
 		{Kind: "cmd", Name: "Post-process finished downloads", Cmd: "/home/media/scripts/on-finished.sh {{torrent.path}} {{torrent.name}}", Cwd: "/home/media/scripts", Timeout: 300, Stdin: true,
 			Events: []string{"torrent.completed"}, Retries: 1},
+		{Kind: "curl", Name: "Curl: notify my server", Cmd: "curl -sf -X POST https://home.example.net/api/swarm/done \\\n  -H 'Content-Type: application/json' \\\n  --data-urlencode name={{torrent.name}} \\\n  --data-urlencode path={{torrent.path}}", Timeout: 60,
+			Events: []string{"torrent.completed"}},
 		{Kind: "api", Name: "Media library refresh", Method: "GET", URL: "http://media.local:8096/library/refresh?path={{torrent.path}}&name={{torrent.name}}",
 			Events: []string{"torrent.completed", "torrent.renamed"}, Tag: "4K", Retries: 3, Timeout: 60},
 	} {
-		h.Enabled = h.Name != "Media library refresh"
+		h.Enabled = h.Name != "Media library refresh" && h.Kind != "curl"
 		if _, err := s.hooks.Create(ctx, h); err != nil {
 			return err
 		}

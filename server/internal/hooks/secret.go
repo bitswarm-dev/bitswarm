@@ -256,7 +256,7 @@ func restoreHeaders(newTxt, oldTxt string) string {
 }
 
 func maskDelivery(d Delivery) Delivery {
-	if d.Kind == "cmd" {
+	if d.Shell() {
 		return d
 	}
 	d.URL, d.Body = displaySecrets(d.URL), displaySecrets(d.Body)

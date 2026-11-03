@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -318,7 +319,13 @@ func TestValidate(t *testing.T) {
 	}{
 		{"ok", func(*Hook) {}, ""},
 		{"no name", func(h *Hook) { h.Name = " " }, "Give the hook a name."},
-		{"bad kind", func(h *Hook) { h.Kind = "x" }, "call an API or run a command"},
+		{"bad kind", func(h *Hook) { h.Kind = "x" }, "call an API, run a command or run curl"},
+		{"curl ok", func(h *Hook) {
+			*h = Hook{Kind: "curl", Name: "c", Cmd: "curl -X POST https://example.org/h -d {{torrent.name}}", Timeout: 5, Events: []string{"torrent.added"}}
+		}, ""},
+		{"curl must start with curl", func(h *Hook) {
+			*h = Hook{Kind: "curl", Name: "c", Cmd: "wget https://example.org", Timeout: 5, Events: []string{"torrent.added"}}
+		}, "must start with curl"},
 		{"unknown event", func(h *Hook) { h.Events = []string{"nope"} }, "isn’t an event Bitswarm knows"},
 		{"bad method", func(h *Hook) { h.Method = "DELETE" }, "POST, PUT, PATCH or GET"},
 		{"bad url", func(h *Hook) { h.URL = "ftp://x" }, "full URL to call"},
@@ -455,7 +462,7 @@ func TestSeed(t *testing.T) {
 		t.Fatal(err)
 	}
 	hs, _ := svc.List(ctx)
-	if len(hs) != 4 || hs[3].Enabled || !hs[0].Enabled || len(hs[1].Events) != len(Events) || !hs[1].HasSecret {
+	if len(hs) != 5 || hs[4].Enabled || hs[3].Kind != "curl" || hs[3].Enabled || !hs[0].Enabled || len(hs[1].Events) != len(Events) || !hs[1].HasSecret {
 		t.Errorf("seed = %d hooks", len(hs))
 	}
 	if StatusText(Delivery{Status: "ran"}) != "Ran and exited with 0." || !strings.HasPrefix(StatusText(Delivery{Status: "not_run", Error: "x"}), "Not run:") || !strings.HasPrefix(StatusText(Delivery{Status: "failed", Error: "x"}), "Failed:") {
@@ -483,6 +490,9 @@ func TestHandler(t *testing.T) {
 		{"create bad json", http.MethodPost, "/hooks", `{`, 400},
 		{"preview", http.MethodPost, "/hooks/preview", body, 200},
 		{"preview bad json", http.MethodPost, "/hooks/preview", `{`, 400},
+		{"parse curl", http.MethodPost, "/hooks/parse-curl", `{"command":"curl -X POST https://example.org/h -d a=1"}`, 200},
+		{"parse curl not curl", http.MethodPost, "/hooks/parse-curl", `{"command":"wget https://example.org"}`, 400},
+		{"parse curl bad json", http.MethodPost, "/hooks/parse-curl", `{`, 400},
 		{"update", http.MethodPut, "/hooks/1", body, 200},
 		{"update missing", http.MethodPut, "/hooks/9", body, 404},
 		{"update bad id", http.MethodPut, "/hooks/x", body, 400},
@@ -507,5 +517,52 @@ func TestHandler(t *testing.T) {
 				t.Errorf("status = %v (%v), want %d", resp, err, tc.want)
 			}
 		})
+	}
+}
+
+func TestDelivery_CurlHook(t *testing.T) {
+	if _, err := exec.LookPath("curl"); err != nil {
+		t.Skip("curl isn't installed")
+	}
+	ctx := context.Background()
+	var (
+		mu  sync.Mutex
+		got struct{ method, body, event string }
+	)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		b, _ := io.ReadAll(r.Body)
+		mu.Lock()
+		defer mu.Unlock()
+		got.method, got.body, got.event = r.Method, string(b), r.Header.Get("X-Test")
+		w.WriteHeader(204)
+	}))
+	defer srv.Close()
+
+	h := Hook{Kind: "curl", Name: "C", Cmd: "curl -sf -X POST " + srv.URL + " -H 'X-Test: yes' --data {{torrent.name}}", Timeout: 10, Events: []string{"torrent.completed"}, Enabled: true}
+
+	off, _ := newSvc(t, false)
+	v, _ := off.Create(ctx, h)
+	mu.Lock()
+	called := got.method != ""
+	mu.Unlock()
+	if d, _ := off.Test(ctx, v.ID); d.Status != "not_run" || called {
+		t.Fatalf("curl ran with commands off: %+v", d)
+	}
+
+	on, _ := newSvc(t, true)
+	evil := "x'; echo pwned #"
+	on.SetSamples(Samples{Torrent: func(context.Context) map[string]any { return torrentInfo(evil, "") }})
+	v, err := on.Create(ctx, h)
+	if err != nil {
+		t.Fatal(err)
+	}
+	d, _ := on.Test(ctx, v.ID)
+	if d.Status != "ran" || d.Kind != "curl" {
+		t.Fatalf("delivery = %+v", d)
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if got.method != "POST" || got.body != evil || got.event != "yes" {
+		t.Errorf("server saw %+v", got)
 	}
 }

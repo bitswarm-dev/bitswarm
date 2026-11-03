@@ -347,6 +347,7 @@ func TestValidate_Secrets(t *testing.T) {
 			return h
 		}(), "capital letters"},
 		{"command with a reference", Hook{Kind: "cmd", Name: "C", Cmd: "curl -H 'k: {{secret.KEY}}' x", Events: []string{"torrent.completed"}, Timeout: 30, Enabled: true}, "Command hooks can’t use"},
+		{"curl with a reference", Hook{Kind: "curl", Name: "C", Cmd: "curl -H 'k: {{secret.KEY}}' x", Events: []string{"torrent.completed"}, Timeout: 30, Enabled: true}, "Curl hooks can’t use"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

@@ -22,7 +22,12 @@ var (
 	placeholderRe = regexp.MustCompile(`\{\{\s*([\w.]+)\s*\}\}`)
 	headerNameRe  = regexp.MustCompile(`^[A-Za-z0-9-]+$`)
 	jsonTypeRe    = regexp.MustCompile(`(?i)json`)
+	curlStartRe   = regexp.MustCompile(`^\s*curl(\s|$)`)
 )
+
+func (h Hook) Shell() bool { return h.Kind == "cmd" || h.Kind == "curl" }
+
+func (d Delivery) Shell() bool { return d.Kind == "cmd" || d.Kind == "curl" }
 
 func Sq(s string) string { return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'" }
 
@@ -148,7 +153,7 @@ func prettyJSON(s string) string {
 func Build(h Hook, event string, data map[string]any, now time.Time) Delivery {
 	vars := Vars(event, data, now)
 	d := Delivery{T: now.UnixMilli(), HookID: h.ID, Hook: h.Name, Event: event, Kind: h.Kind, Timeout: h.Timeout, Headers: [][2]string{}, Env: [][2]string{}}
-	if h.Kind == "cmd" {
+	if h.Shell() {
 		d.Command = Fill(h.Cmd, vars, "shell")
 		d.Cwd = h.Cwd
 		d.Env = [][2]string{{"SWARM_EVENT", event}, {"SWARM_TIME", vars["time"]}}
@@ -267,7 +272,7 @@ func curlOf(d Delivery) string {
 }
 
 func templateOf(h Hook) string {
-	if h.Kind == "cmd" {
+	if h.Shell() {
 		return h.Cmd
 	}
 	return h.URL + h.Body + h.Headers
