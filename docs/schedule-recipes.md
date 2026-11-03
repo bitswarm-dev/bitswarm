@@ -96,24 +96,41 @@ If you already have the address of a results page, such as a saved search or a f
 
 ## Tidy names as they download: a rename preset
 
-Many release groups name files like `[Group] Some Show - 06 (1080p) [019F4E4B].mkv`. A rename preset can move each file into a folder named after the show. Create it under **Auto rename**, or inline from the schedule's **Rename preset** field.
+Release names often look like `[Debian] Ubuntu - 2006 (100) [919404B].iso`: a group in brackets, a title, a number, a detail in parentheses and a hash in brackets. A rename preset can sort each file into a folder named after the title. Create it under **Auto rename**, or inline from the schedule's **Rename preset** field.
 
 | Field | Value |
 |---|---|
+| Preset name | `Sort into folders` |
 | Find (regex) | `^\[.+?\] (.+?) - (.+?) \(.+?\) \[.+?\]$` |
-| Replace with | `$1/$1 - $2` |
+| Replace with | `$1/MyDebian/$1-$2` |
+| Ignore case | off |
+| Replace every match | off |
 | Keep the file extension | on |
 | Rename | File names |
+| Only for tag | Any tag |
 | When | Download finishes |
+| Auto-apply to every matching torrent | on |
 
-That turns `[Group] Some Show - 06 (1080p) [019F4E4B].mkv` into `Some Show/Some Show - 06.mkv`. The `/` in **Replace with** moves the file into a folder inside the torrent's save folder.
+Type the sample name into **Test your regex** and check the result before you save:
 
-- With **Keep the file extension** on, the pattern is tested against the name without `.mkv`, so end it with the closing `]` and don't put the extension in it.
+| Name | After | Result |
+|---|---|---|
+| `[Debian] Ubuntu - 2006 (100) [919404B].iso` | `Ubuntu/MyDebian/Ubuntu-2006.iso` | Renamed |
+
+How it reads:
+
+- `^\[.+?\] ` skips the first bracket, whatever is in it.
+- `(.+?) - (.+?)` captures the title as `$1` and the number as `$2`.
+- ` \(.+?\) \[.+?\]$` skips the parentheses and the last bracket, whatever is in them.
+- In **Replace with**, `MyDebian` is plain text, a folder name you choose. The `/` moves the file into a folder inside the torrent's save folder, and Bitswarm creates the folders if they don't exist. The result is `Ubuntu/MyDebian/Ubuntu-2006.iso`.
+
+Things to know:
+
+- Every part is `.+?`, which matches any text, so it keeps working when the group tag, the detail in the parentheses or the hash look different (`(1080p)`, `(720p HEVC)`, `(100)`, `[Hash_01]`). Strict patterns such as `\d\d` or `[0-9A-F]+` stop matching when a name differs a little.
+- With **Keep the file extension** on, the pattern is tested against the name without `.iso`, so end it with the closing `]` and don't put the extension in it.
+- A title that itself contains ` - ` is split at the first one.
 - Bitswarm uses Go's regular expression syntax: no lookahead and no backreferences.
-- Every part is `.+?`, which matches any text, so it works whatever the group tag, the quality in the parentheses or the hash in the last brackets looks like (`(1080p)`, `(720p HEVC)`, `(100)`, `[019F4E4B]`, `[Hash_01]`). Strict patterns such as `\d\d` or `[0-9A-F]+` stop matching when a name differs a little.
-- The first group is the title and the second is the episode or number, so `Some Show - 06` gives `Some Show/Some Show - 06`. A title that itself contains ` - ` is split at the first one.
-- Paste a few real names into **Test your regex** before saving. It shows the result for each one, or "No match".
-- A file that already has the new name is numbered, like `Some Show - 06 (2).mkv`, and never overwritten.
+- A file that already has the new name is numbered, like `Ubuntu-2006 (2).iso`, and never overwritten.
 
 ## Extras that work with any recipe
 
