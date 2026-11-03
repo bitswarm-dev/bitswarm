@@ -2,7 +2,7 @@ name: bitswarm
 
 services:
   server:
-    image: dockerkeithics/bitswarm-server:${SWARM_VERSION:-0.9.0}
+    image: dockerkeithics/bitswarm-server:${SWARM_VERSION:-latest}
     restart: unless-stopped
     environment:
       SWARM_DEMO: ${SWARM_DEMO:-0}
@@ -18,7 +18,7 @@ services:
     networks: [bitswarm]
 
   web:
-    image: dockerkeithics/bitswarm-web:${SWARM_VERSION:-0.9.0}
+    image: dockerkeithics/bitswarm-web:${SWARM_VERSION:-latest}
     restart: unless-stopped
     depends_on:
       server:

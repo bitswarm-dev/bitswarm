@@ -13,6 +13,7 @@ import (
 
 	"bitswarm/server/internal/auth"
 	"bitswarm/server/internal/backup"
+	"bitswarm/server/internal/buildinfo"
 	"bitswarm/server/internal/catalog"
 	"bitswarm/server/internal/config"
 	"bitswarm/server/internal/db"
@@ -34,7 +35,7 @@ import (
 	"bitswarm/server/internal/updates"
 )
 
-const version = "0.9.0"
+var version = buildinfo.Version
 
 func main() {
 	cfg, err := config.Load()

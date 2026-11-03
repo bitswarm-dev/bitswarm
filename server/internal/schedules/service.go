@@ -1,6 +1,7 @@
 package schedules
 
 import (
+	"bitswarm/server/internal/buildinfo"
 	"context"
 	"errors"
 	"fmt"
@@ -73,7 +74,7 @@ func HTTPFetcher() Fetcher {
 		if err != nil {
 			return "", err
 		}
-		req.Header.Set("User-Agent", "Bitswarm/0.9.0")
+		req.Header.Set("User-Agent", "Bitswarm/"+buildinfo.Version)
 		resp, err := client.Do(req)
 		if err != nil {
 			return "", fmt.Errorf("couldn’t reach %s: %v", u.Host, err)

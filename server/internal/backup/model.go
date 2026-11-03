@@ -1,6 +1,8 @@
 package backup
 
-const Version = "0.9.0"
+import "bitswarm/server/internal/buildinfo"
+
+var Version = buildinfo.Version
 
 var Parts = []string{"settings", "theme", "tags", "schedules", "presets", "maintenance", "hooks"}
 

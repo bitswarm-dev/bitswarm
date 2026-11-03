@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { VERSION } from "@/app/version";
 import { Logo } from "@/components/Icons/Svg";
 import { useAuthStatus } from "@/features/auth/queries";
 import { useLogin } from "@/features/auth/mutations";
@@ -83,7 +84,7 @@ export function SignIn() {
           </p>
         )}
       </form>
-      <p className="lg-foot">Bitswarm 0.9.0 · The server checks your password.</p>
+      <p className="lg-foot">Bitswarm {VERSION} · The server checks your password.</p>
     </div>
   );
 }

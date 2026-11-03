@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { writeFlag } from "@/app/storage";
+import { VERSION } from "@/app/version";
 import { useToast } from "@/components/Toasts/Toasts";
 import { useSaveSettings } from "@/features/settings/mutations";
 import { useSettings } from "@/features/settings/queries";
@@ -8,8 +9,6 @@ import { useCheckUpdates } from "@/features/updates/mutations";
 import { useUpdates } from "@/features/updates/queries";
 import { useStats } from "@/features/torrents/queries";
 import { formatBytes, formatEta, formatWhen } from "@/utils/format";
-
-export const VERSION = "0.9.0";
 
 export function About() {
   const { data: set } = useSettings();

@@ -122,7 +122,7 @@ func TestExport_ShapeAndSecrets(t *testing.T) {
 			t.Errorf("export without secrets leaked %q", bad)
 		}
 	}
-	for _, want := range []string{`"swarm_backup": 1`, `"app_version": "0.9.0"`, `"exported_at": "2026-11-02T10:00:00.000Z"`, `Authorization: <removed>`, `"renamePreset": "Tidy"`, `"rename_presets"`, `"command": "echo {{torrent.name}}"`} {
+	for _, want := range []string{`"swarm_backup": 1`, `"app_version": "` + Version + `"`, `"exported_at": "2026-11-02T10:00:00.000Z"`, `Authorization: <removed>`, `"renamePreset": "Tidy"`, `"rename_presets"`, `"command": "echo {{torrent.name}}"`} {
 		if !strings.Contains(plain.JSON, want) {
 			t.Errorf("export lacks %s", want)
 		}
@@ -168,7 +168,7 @@ func TestRoundTrip(t *testing.T) {
 	for _, p := range plan.Parts {
 		keys = append(keys, p.Key)
 	}
-	if strings.Join(keys, ",") != "settings,tags,schedules,presets,maintenance,hooks" || plan.From != "0.9.0" || plan.At == "" {
+	if strings.Join(keys, ",") != "settings,tags,schedules,presets,maintenance,hooks" || plan.From != Version || plan.At == "" {
 		t.Errorf("plan = %+v", plan)
 	}
 

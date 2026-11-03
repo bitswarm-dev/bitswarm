@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent } from "react";
 import { ACCENTS, BGS, useTheme, type AccentKey, type Mode, type Theme } from "@/app/theme";
+import { VERSION } from "@/app/version";
 import { useToast } from "@/components/Toasts/Toasts";
 import { useApplyBackup, useCheckBackup, useExportBackup } from "@/features/backup/mutations";
 import { useBackupCounts } from "@/features/backup/queries";
@@ -61,7 +62,7 @@ export function BackupSection() {
       }
       setOut(final);
     };
-    if (!server.length) return finish(JSON.stringify({ swarm_backup: 1, app_version: "0.9.0", exported_at: new Date().toISOString(), parts: {} }));
+    if (!server.length) return finish(JSON.stringify({ swarm_backup: 1, app_version: VERSION, exported_at: new Date().toISOString(), parts: {} }));
     exporter.mutate({ parts: server, secrets }, { onSuccess: (r) => finish(r.json), onError: (e) => toast(e.message) });
   };
 

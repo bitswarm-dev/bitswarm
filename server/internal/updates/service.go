@@ -1,6 +1,7 @@
 package updates
 
 import (
+	"bitswarm/server/internal/buildinfo"
 	"context"
 	"encoding/json"
 	"errors"
@@ -71,7 +72,7 @@ func URLFeed(raw string) Feed {
 		if err != nil {
 			return nil, err
 		}
-		req.Header.Set("User-Agent", "Bitswarm/"+"0.9.0")
+		req.Header.Set("User-Agent", "Bitswarm/"+buildinfo.Version)
 		resp, err := client.Do(req)
 		if err != nil {
 			return nil, fmt.Errorf("couldn’t reach the release feed: %v", err)

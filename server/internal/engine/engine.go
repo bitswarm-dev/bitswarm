@@ -122,7 +122,15 @@ func New(cfg Config) (*Engine, error) {
 }
 
 func peerPrefix(version string) string {
-	digits := strings.ReplaceAll(version, ".", "") + "0000"
+	core, _, _ := strings.Cut(version, "-")
+	digits := strings.ReplaceAll(core, ".", "")
+	for _, r := range digits {
+		if r < '0' || r > '9' {
+			digits = ""
+			break
+		}
+	}
+	digits += "0000"
 	return "-SW" + digits[:4] + "-"
 }
 

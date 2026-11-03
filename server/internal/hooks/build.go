@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"bitswarm/server/internal/buildinfo"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -15,7 +16,7 @@ import (
 	"bitswarm/server/internal/jsonutil"
 )
 
-const Version = "0.9.0"
+var Version = buildinfo.Version
 
 var (
 	placeholderRe = regexp.MustCompile(`\{\{\s*([\w.]+)\s*\}\}`)

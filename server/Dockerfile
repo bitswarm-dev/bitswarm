@@ -2,12 +2,13 @@ FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build
 ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETVARIANT
+ARG APP_VERSION=dev
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
-    go build -trimpath -ldflags="-s -w" -o /out/server ./cmd/server
+    go build -trimpath -ldflags="-s -w -X bitswarm/server/internal/buildinfo.Version=${APP_VERSION}" -o /out/server ./cmd/server
 
 FROM alpine:3.21
 RUN apk add --no-cache ca-certificates tzdata \

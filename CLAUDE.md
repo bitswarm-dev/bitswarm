@@ -17,7 +17,7 @@ The engine is **real and built in**: `server/internal/engine` wraps `github.com/
 | Dashboard | `dashboard/`: Vite, React 18, TypeScript, React Router, TanStack Query v5 |
 | Server | `server/`: Go, Fiber, SQLite (`modernc.org/sqlite`), module `bitswarm/server` |
 | Run everything | `./run.sh`, then open http://localhost:5173 (server on :8080, Vite proxies `/api`). A fresh database is empty and downloads for real into `server/downloads` (or `SWARM_DOWNLOADS`). `./run.sh --demo` (or `SWARM_DEMO=1`) switches to the **simulated** engine and adds 10 sample torrents. |
-| Docker (preferred for users) | `docker compose up -d` pulls `dockerkeithics/bitswarm-server` and `bitswarm-web` (pinned with `SWARM_VERSION`, default `0.9.0`). `docker-compose.build.yml` builds them from source. Bump the version in `docker-compose.yml`, `README.md` and `About.tsx` together when releasing. |
+| Docker (preferred for users) | `docker compose up -d` pulls `dockerkeithics/bitswarm-server` and `bitswarm-web` (`SWARM_VERSION` pins a version, default `latest`). `docker-compose.build.yml` builds them from source. |
 | Demo sign-in | `admin` / `swarm` (skipped on localhost while "Skip sign-in on localhost" is on, which is the default) |
 
 ---
@@ -232,4 +232,6 @@ RSS feeds with auto-download rules · create torrent · built-in multi-site sear
 
 Releases are manual: `main` is always releasable and a version tag on it publishes the release. The full steps are in [`docs/releasing.md`](./docs/releasing.md). Branches are where you work, tags are what ships. Never move or reuse a tag.
 
-Pushing `vX.Y.Z` or `vX.Y.Z-rc.N` runs `.github/workflows/docker-release.yml`. It refuses the tag unless the commit is on `main` or on `release/X.Y` and the versions in `About.tsx` and the `docker-compose.yml` default match. Bump those two and `README.md` together in a release pull request before tagging. Create a `release/X.Y` branch only to patch an older version.
+**The tag is the only source of the version.** There is nothing to bump. The pipeline passes the tag's version into the server (`-ldflags` setting `internal/buildinfo.Version`), the dashboard (`VITE_APP_VERSION`) and the Docker images, and pins the `docker-compose.yml` attached to the release. A local build reports `dev`. Don't hard-code a version number in code.
+
+Pushing `vX.Y.Z` or `vX.Y.Z-rc.N` runs `.github/workflows/docker-release.yml`. It refuses a tag that isn't in that form, or whose commit isn't on `main` or on `release/X.Y`. Create a `release/X.Y` branch only to patch an older version.

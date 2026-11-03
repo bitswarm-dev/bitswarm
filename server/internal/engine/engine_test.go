@@ -254,7 +254,7 @@ func TestPruneDirs_StaysInsideBase(t *testing.T) {
 }
 
 func TestPeerPrefix(t *testing.T) {
-	tests := map[string]string{"0.9.0": "-SW0900-", "1.2.3": "-SW1230-", "10": "-SW1000-"}
+	tests := map[string]string{"0.9.0": "-SW0900-", "1.2.3": "-SW1230-", "10": "-SW1000-", "0.9.1-rc.1": "-SW0910-", "dev": "-SW0000-"}
 	for in, want := range tests {
 		if got := peerPrefix(in); got != want {
 			t.Errorf("peerPrefix(%q) = %q, want %q", in, got, want)

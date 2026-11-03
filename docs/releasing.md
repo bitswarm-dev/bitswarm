@@ -17,23 +17,21 @@ The core rule: **branches are where you work, tags are what you ship.** `main` i
 | `vX.Y.Z-rc.N` | Release candidate for testing. Pre-release: Docker tags `X.Y.Z-rc.N`, no `latest`. |
 | `vX.Y.Z` | Final release. Docker tags `X.Y.Z` plus per-platform tags. It takes `latest` only if it is the highest stable version. |
 
+## The version comes from the tag
+
+There are no version files to edit. The tag is the only source of the version. The pipeline builds it into the server, the dashboard and the Docker images, and attaches a `docker-compose.yml` pinned to that version. A build you make locally reports `dev`.
+
 ## Cut a release
 
 1. **Land the work in `main`.** Pull requests merge once the checks pass.
-2. **Open a release pull request** that bumps the version in three places, then merge it:
-   - `dashboard/src/pages/about/About.tsx` (`VERSION`)
-   - `docker-compose.yml` (the `SWARM_VERSION` default)
-   - `README.md` (the pinned version in the Docker section)
-
-   Use the final version, for example `0.10.0`, even if you plan a release candidate first.
-3. **Optional: test a release candidate.** Tag the merge commit `v0.10.0-rc.1` and push the tag. Fix problems with normal pull requests to `main`, then tag `rc.2`, `rc.3` and so on.
-4. **Tag the final release** on the commit you tested and push the tag:
+2. **Optional: test a release candidate.** Tag the commit `v0.10.0-rc.1` and push the tag. Fix problems with normal pull requests to `main`, then tag `rc.2`, `rc.3` and so on.
+3. **Tag the final release** on the commit you tested and push the tag:
 
    ```text
    main → v0.10.0
    ```
 
-5. **Check the result.** The GitHub release exists, the Docker Hub tags `0.10.0` and `latest` list all four platforms, and the assets are attached.
+4. **Check the result.** The GitHub release exists, the Docker Hub tags `0.10.0` and `latest` list all four platforms, the assets are attached, and the About page of a running image shows `0.10.0`.
 
 ## Patch an older version
 
@@ -41,7 +39,7 @@ Do this only when users on an older line need a fix and `main` has already moved
 
 1. **Fix it in `main` first**, through a normal pull request.
 2. **Create `release/0.9`** from the old tag (`v0.9.0`) if it doesn't exist yet.
-3. **Cherry-pick the fix** onto it, and bump the three version places to `0.9.1` in the same pull request.
+3. **Cherry-pick the fix** onto it through a pull request.
 4. **Tag `v0.9.1` on `release/0.9`** and push the tag.
 
 A patch to an older line never takes `latest`. If the bug exists only in the old line, fix it on the release branch and forward-port the fix to `main`, so it doesn't come back in the next release.
@@ -52,7 +50,6 @@ Pushing a tag runs `.github/workflows/docker-release.yml`. It stops, with a plai
 
 - the tag isn't `vX.Y.Z` or `vX.Y.Z-rc.N`
 - the tagged commit isn't on `main` or on `release/X.Y`
-- `About.tsx` or `docker-compose.yml` doesn't match the version being released
 
 Then it creates the GitHub release (a pre-release for `-rc` tags), pushes the multi-arch and per-platform Docker images for `linux/amd64`, `arm64`, `arm/v7` and `386`, and attaches the server binaries, the dashboard, `docker-compose.yml` and `SHA256SUMS`.
 
@@ -67,7 +64,6 @@ Then it creates the GitHub release (a pre-release for `-rc` tags), pushes the mu
 ```mermaid
 flowchart LR
     FEAT["feature/* · fix/*"] -- "PR" --> MAIN["main"]
-    MAIN -- "release PR bumps versions" --> MAIN
     MAIN -- "optional: rc tag" --> RC["v0.10.0-rc.1"]
     RC -- "test" --> TEST["testers"]
     MAIN -- "final tag" --> FINAL["v0.10.0"]
