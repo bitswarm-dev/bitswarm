@@ -18,6 +18,7 @@ import (
 
 	"bitswarm/server/internal/docstore"
 	"bitswarm/server/internal/jsonutil"
+	"bitswarm/server/internal/redact"
 )
 
 var ErrNotFound = docstore.ErrNotFound
@@ -67,6 +68,7 @@ func (s *Service) Wait() { s.wg.Wait() }
 func (s *Service) view(h Hook) View {
 	v := View{Hook: h, HasSecret: h.Secret != ""}
 	v.Secret, v.ClearSecret = "", false
+	v.Headers = maskHeaderText(h.Headers)
 	return v
 }
 
@@ -139,6 +141,9 @@ func (s *Service) validate(ctx context.Context, h Hook) error {
 	}
 	retries := Invalid("Retries must be a whole number from 0 to 10.")
 	if h.Kind == "cmd" {
+		if secretRe.MatchString(h.Cmd) {
+			return Invalid("Command hooks can’t use {{secret.NAME}}. API hooks can. In a command, read the key from your own file or environment instead.")
+		}
 		switch {
 		case strings.TrimSpace(h.Cmd) == "":
 			return Invalid("Enter the command to run.")
@@ -155,6 +160,11 @@ func (s *Service) validate(ctx context.Context, h Hook) error {
 	}
 	if !slices.Contains([]string{"POST", "PUT", "PATCH", "GET"}, h.Method) {
 		return Invalid("Choose POST, PUT, PATCH or GET.")
+	}
+	for _, n := range secretNames(h) {
+		if !secretNameRe.MatchString(n) {
+			return Invalid("Secret names use capital letters, digits and underscores, like {{secret.RESEND_KEY}}. “" + n + "” doesn’t.")
+		}
 	}
 	raw := Fill(h.URL, Vars("torrent.completed", s.sample(ctx, "torrent.completed"), s.now()), "url")
 	if u, err := url.Parse(raw); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
@@ -211,6 +221,7 @@ func (s *Service) Update(ctx context.Context, h Hook) (View, error) {
 		return View{}, err
 	}
 	h.Count, h.Last, h.LastEvent = old.Count, old.Last, old.LastEvent
+	h.Headers = restoreHeaders(h.Headers, old.Headers)
 	switch {
 	case h.ClearSecret:
 		h.Secret = ""
@@ -261,7 +272,10 @@ func (s *Service) Preview(ctx context.Context, h Hook) Preview {
 	data := s.sample(ctx, event)
 	d := Build(h, event, data, s.now())
 	vars := Vars(event, data, s.now())
-	p := Preview{Event: event, Text: d.Text, Unknown: []string{}, Empty: []string{}, Signed: h.Kind != "cmd" && h.Secret != ""}
+	p := Preview{Event: event, Text: maskDelivery(d).Text, Unknown: []string{}, Empty: []string{}, Signed: h.Kind != "cmd" && h.Secret != "", MissingSecrets: []string{}}
+	if h.Kind != "cmd" {
+		p.MissingSecrets = MissingSecrets(h)
+	}
 	if h.Kind != "cmd" && h.Secret != "" {
 		p.Text += "\n(X-Swarm-Signature: sha256=… is added when sent)"
 	}
@@ -335,6 +349,7 @@ func (s *Service) deliver(ctx context.Context, h Hook, event string, data map[st
 	}
 	d.Millis = time.Since(start).Milliseconds()
 
+	d = maskDelivery(d)
 	stored, err := s.deliveries.Create(ctx, d)
 	if err == nil {
 		d = stored
@@ -373,8 +388,13 @@ func (s *Service) send(ctx context.Context, h Hook, d *Delivery) {
 	attempts := h.Retries + 1
 	for i := 1; i <= attempts; i++ {
 		d.Attempts = i
-		code, err := s.once(ctx, *d)
+		code, err := s.once(ctx, *d, h.Secret)
 		d.Response = code
+		var missing missingSecretError
+		if errors.As(err, &missing) {
+			d.Status, d.Error = "failed", err.Error()
+			return
+		}
 		switch {
 		case err == nil && code < 400:
 			d.Status, d.Error = "sent", ""
@@ -393,17 +413,28 @@ func (s *Service) send(ctx context.Context, h Hook, d *Delivery) {
 	}
 }
 
-func (s *Service) once(ctx context.Context, d Delivery) (int, error) {
+func (s *Service) once(ctx context.Context, sent Delivery, signingSecret string) (int, error) {
+	d, missing := resolveSecrets(sent)
+	if len(missing) > 0 {
+		return 0, missingSecretError{missing[0]}
+	}
+	if signingSecret != "" && d.Body != sent.Body {
+		for i := range d.Headers {
+			if strings.EqualFold(d.Headers[i][0], "X-Swarm-Signature") {
+				d.Headers[i][1] = Sign(signingSecret, d.Body)
+			}
+		}
+	}
 	req, err := http.NewRequestWithContext(ctx, d.Method, d.URL, strings.NewReader(d.Body))
 	if err != nil {
-		return 0, err
+		return 0, errors.New(redact.Err(err))
 	}
 	for _, kv := range d.Headers {
 		req.Header.Set(kv[0], kv[1])
 	}
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return 0, errors.New(strings.TrimPrefix(err.Error(), d.Method+" "))
+		return 0, errors.New(strings.TrimPrefix(redact.Err(err), d.Method+" "))
 	}
 	defer resp.Body.Close()
 	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 1<<20))

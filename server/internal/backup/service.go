@@ -70,8 +70,6 @@ type Service struct {
 
 func NewService() *Service { return &Service{now: time.Now} }
 
-var secretHeader = regexp.MustCompile(`(?i)^(authorization|proxy-authorization|x-api-key|api-key|x-auth-token|cookie)\s*:`)
-
 func plural(n int, w string) string {
 	if n == 1 {
 		return fmt.Sprintf("1 %s", w)
@@ -179,8 +177,8 @@ func (s *Service) Export(ctx context.Context, r ExportReq) (ExportResult, error)
 				if !r.Secrets {
 					lines := strings.Split(headers, "\n")
 					for i, l := range lines {
-						if secretHeader.MatchString(strings.TrimSpace(l)) {
-							lines[i] = l[:strings.Index(l, ":")] + ": <removed>"
+						if j := strings.Index(l, ":"); j > 0 && hooks.IsSecretHeader(l[:j]) && !hooks.HasSecretRef(l[j+1:]) {
+							lines[i] = l[:j] + ": <removed>"
 						}
 					}
 					headers = strings.Join(lines, "\n")

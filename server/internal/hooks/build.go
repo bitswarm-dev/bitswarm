@@ -92,6 +92,9 @@ func Vars(event string, data map[string]any, now time.Time) map[string]string {
 func Fill(tpl string, vars map[string]string, mode string) string {
 	return placeholderRe.ReplaceAllStringFunc(tpl, func(m string) string {
 		k := placeholderRe.FindStringSubmatch(m)[1]
+		if strings.HasPrefix(k, "secret.") {
+			return m
+		}
 		val, ok := vars[k]
 		if !ok {
 			return ""
@@ -266,6 +269,9 @@ func templateOf(h Hook) string {
 
 func Placeholders_(h Hook) (names []string) {
 	for _, m := range placeholderRe.FindAllStringSubmatch(templateOf(h), -1) {
+		if strings.HasPrefix(m[1], "secret.") {
+			continue
+		}
 		if !slices.Contains(names, m[1]) {
 			names = append(names, m[1])
 		}

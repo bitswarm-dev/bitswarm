@@ -61,6 +61,8 @@ type Preview struct {
 	Unknown []string `json:"unknown"`
 	Empty   []string `json:"empty"`
 	Signed  bool     `json:"signed"`
+
+	MissingSecrets []string `json:"missingSecrets"`
 }
 
 type Config struct {
