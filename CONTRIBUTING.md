@@ -42,6 +42,7 @@ For interface changes, also check in a real browser in the light and dark themes
 
 ## Pull requests
 
+- Target `main`. Only a patch for an older version goes to a `release/X.Y` branch. See [docs/releasing.md](./docs/releasing.md).
 - One topic per pull request, with a short description of what changed and why.
 - Add or update tests for server changes (one test file per source file, table-driven, standard library only).
 - Don't add a dependency without asking first.

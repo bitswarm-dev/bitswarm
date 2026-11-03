@@ -230,8 +230,6 @@ RSS feeds with auto-download rules · create torrent · built-in multi-site sear
 
 ## 11. Releasing
 
-A release starts from a version tag. Pushing a tag named `vX.Y.Z` (or `vX.Y.Z-rc.1` for a pre-release) runs `.github/workflows/docker-release.yml`, which creates the GitHub release, pushes the Docker images and attaches the server binaries.
+Releases are manual: `main` is always releasable and a version tag on it publishes the release. The full steps are in [`docs/releasing.md`](./docs/releasing.md). Branches are where you work, tags are what ships. Never move or reuse a tag.
 
-1. Bump the version in `dashboard/src/pages/about/About.tsx` (`VERSION`), in `docker-compose.yml` (the `SWARM_VERSION` default) and in `README.md`. The workflow stops if the tag doesn't match the first two.
-2. Merge that to `main`, tag the merge commit `vX.Y.Z` and push the tag.
-3. A tag with a `-` in it (for example `v1.0.0-rc.1`) is a pre-release: it gets versioned tags but not `latest`.
+Pushing `vX.Y.Z` or `vX.Y.Z-rc.N` runs `.github/workflows/docker-release.yml`. It refuses the tag unless the commit is on `main` or on `release/X.Y` and the versions in `About.tsx` and the `docker-compose.yml` default match. Bump those two and `README.md` together in a release pull request before tagging. Create a `release/X.Y` branch only to patch an older version.
