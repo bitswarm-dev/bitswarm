@@ -60,7 +60,7 @@ Known gaps (all disclosed in the UI):
 
 1. **Never pretend.** If something is simulated (downloads, update feed, hook delivery, command execution), the UI must say so in plain words. Hooks log as **"Not sent" / "Not run"** until delivery truly works.
 2. **Every user-visible lifecycle step goes through `events.Emitter.Emit()`** (§6). That one call feeds the execution log and the hooks.
-3. **Safety first for anything that runs or leaves the machine.** Shell placeholders are always single-quoted, secrets are hashed or redacted, hooks show an advanced-user warning, imported hooks start disabled, and command hooks stay off unless the server is started with them enabled.
+3. **Safety first for anything that runs or leaves the machine.** Shell placeholders are always single-quoted, secrets are hashed, masked or kept in the environment, hooks show an advanced-user warning, imported hooks start disabled, and command hooks stay off unless the server is started with them enabled.
 4. **Both themes, both widths.** Every UI change must work in light and dark (system, light, dark) and at ~390 px width with no horizontal page scroll.
 5. **Plain, specific copy.** Buttons say exactly what happens ("Revoke", "Move", "Save changes"). Errors say what went wrong and how to fix it. No apologies, no vague "Something went wrong".
 6. **Reuse the existing look.** `dashboard/src/styles/global.css` holds the shared CSS. Use its class names (`.row`, `.fbtn`, `.pill`, `.sched`, `.rule`, `.modal`, `.menu`, …) before inventing new ones, and keep colors as tokens.
@@ -162,6 +162,8 @@ Every event in the table is emitted today. Use `Logger.Add(level, source, messag
 
 - Placeholders: `{{payload}}`, `{{event}}`, `{{time}}`, `{{torrent.name}}`, `{{torrent.hash}}`, `{{torrent.tags}}`, `{{torrent.size}}`, `{{torrent.bytes}}`, `{{torrent.path}}`, `{{torrent.ratio}}`, `{{torrent.state}}`, `{{schedule.name}}`, `{{task.name}}`, `{{count}}`.
 - Escape by context: URL gets `encodeURIComponent`; JSON gets JSON-string escaping (except `payload`, inserted raw); shell gets single quotes; text is raw.
+- **Secrets:** `{{secret.NAME}}` is resolved only at send time, from `SWARM_SECRET_NAME` or `SWARM_SECRET_NAME_FILE`. `Fill` leaves it untouched, so `Build`, previews, stored deliveries, logs and backups only ever hold the placeholder. API hooks only: `validate` rejects it in commands. Header values for `Authorization`, `X-Api-Key` and similar (`IsSecretHeader`) are masked as `********` in the view, previews and stored deliveries, and `Update` restores the saved value when the mask comes back unchanged. Backups blank real values in those headers and keep `{{secret.NAME}}` references. Never put a resolved secret in a log line, an error or a `Delivery`.
+- **URLs in errors:** run client errors through `redact.Err` so query strings (`?apikey=…`) never reach the log or a stored delivery.
 - API requests add `User-Agent: Bitswarm/<version>` and `X-Swarm-Event`. With a signing secret they add `X-Swarm-Signature: sha256=<hex HMAC-SHA256 of the body>`.
 - Commands get env vars `SWARM_EVENT`, `SWARM_TIME`, `SWARM_TORRENT_NAME`, `SWARM_TORRENT_HASH`, `SWARM_TORRENT_PATH`, `SWARM_TORRENT_SIZE`, `SWARM_SCHEDULE`, `SWARM_TASK`, optional JSON on stdin, and a timeout.
 - **Never** interpolate a placeholder into a shell command without single-quoting it. A torrent name like `x'; rm -rf ~ #` must arrive as one literal argument.

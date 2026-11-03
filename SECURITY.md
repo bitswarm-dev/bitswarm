@@ -35,3 +35,6 @@ Examples we care about:
 - Keep the web port on `127.0.0.1`, or put it behind HTTPS if you expose it.
 - Leave command hooks off unless you need them. A command hook can run anything the server user can run.
 - Treat API tokens like passwords. Prefer the read scope when control isn't needed.
+- Keep API keys for hooks out of the database: write `{{secret.NAME}}` in the hook and set `SWARM_SECRET_NAME` on the server. A key typed into a header is hidden after you save, but it is stored as plain text.
+- Keep the data folder private. It holds the database, and Bitswarm makes the database file readable by its owner only. Don't `chmod 777` it.
+- Leave "include secrets" off when you export a backup.

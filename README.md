@@ -74,8 +74,10 @@ Use any email service that sends mail from a JSON request. This example uses the
 
 ```text
 Content-Type: application/json
-Authorization: Bearer YOUR_API_KEY
+Authorization: Bearer {{secret.RESEND_KEY}}
 ```
+
+`{{secret.RESEND_KEY}}` keeps your API key out of Bitswarm's database. See [Keep keys out of the database](#keep-keys-out-of-the-database) below for how to set it.
 
 **Email: download started.** Tick the event **Added**, and use this body:
 
@@ -104,8 +106,31 @@ Notes:
 - Placeholder values are escaped for JSON automatically, so a torrent name with quotes can't break the request.
 - For a magnet link, the name and size may not be known when the torrent is added. Tick **Metadata received** instead of **Added** to send the email once they are.
 - Press **Send test** to send a sample event first. The preview under the form shows the request before anything leaves your machine.
-- The API key is saved with the hook, in the header text. Use a key that can only send email, and treat the `data` folder and settings backups as sensitive.
+- Use an API key that can only send email, and rotate it if it ever leaks.
 - Replace `from` with an address your email service has verified. To send through a different service, change the URL, the headers and the body to match its API.
+
+#### Keep keys out of the database
+
+Write `{{secret.NAME}}` anywhere in an API hook's URL, headers or body. When Bitswarm sends the request, it reads the value from the server's environment variable `SWARM_SECRET_NAME`, or from the file named by `SWARM_SECRET_NAME_FILE` (handy for Docker secrets). Names use capital letters, digits and underscores.
+
+- The value is never saved with the hook. The editor, the API, the delivery history, the logs and backups only ever show `{{secret.NAME}}`.
+- If the variable isn't set, the hook doesn't send and says which one is missing. The editor warns you too.
+- Command hooks can't use it. A script can read its own file instead.
+
+In Docker, put the key in a `.env` file next to `docker-compose.yml`, and pass it to the server with a `docker-compose.override.yml`. Compose picks the override file up on its own:
+
+```text
+SWARM_SECRET_RESEND_KEY=re_your_key_here
+```
+
+```yaml
+services:
+  server:
+    environment:
+      SWARM_SECRET_RESEND_KEY: ${SWARM_SECRET_RESEND_KEY}
+```
+
+Then run `docker compose up -d`. If you type a key straight into a header instead, Bitswarm hides it in the editor and the API after you save, but it is still stored as plain text in the database file. Use `{{secret.NAME}}` when you can.
 
 ### API tokens
 
@@ -132,7 +157,8 @@ You only need [Docker](https://docs.docker.com/get-docker/) with Compose.
 ```sh
 mkdir bitswarm && cd bitswarm
 curl -fsSLO https://raw.githubusercontent.com/bitswarm-dev/bitswarm/main/docker-compose.yml
-mkdir data downloads && chmod 777 data downloads
+mkdir data downloads
+sudo chown 10001:10001 data downloads
 docker compose up -d
 ```
 
@@ -142,7 +168,7 @@ The images [`dockerkeithics/bitswarm-server`](https://hub.docker.com/r/dockerkei
 
 - **Sign-in is always required** in Docker, because the server sees nginx as the client and not localhost.
 - **The web port is bound to `127.0.0.1` by default.** To reach it from other machines, set `SWARM_BIND=0.0.0.0` and put it behind HTTPS.
-- **Data:** the database and engine state live in `./data` (change it with `SWARM_DATA_DIR`). Downloads go to `./downloads` (change it with `SWARM_DOWNLOADS_DIR`). Both folders must be writable by user ID 10001, which is what the `chmod` step does. Without it, Docker creates them owned by root and the server can't start on Linux.
+- **Data:** the database and engine state live in `./data` (change it with `SWARM_DATA_DIR`). Downloads go to `./downloads` (change it with `SWARM_DOWNLOADS_DIR`). Both folders must be writable by user ID 10001, which is what the `chown` step does. Without it, Docker creates them owned by root and the server can't start on Linux. Docker Desktop on macOS and Windows doesn't need the `chown`. Don't open the folders up with `chmod 777`: the data folder holds your database, and Bitswarm makes the database file readable by its owner only. To back it up, use Settings → Backup, or copy it with `sudo`.
 - **Peers:** port 51413 (TCP and UDP) is published for peer connections. If that port is taken, set `SWARM_PEER_PORT` (for example `51414`), set the same listening port in Settings, and restart. The host and container ports must match so peers can reach you. UPnP can't open ports from inside a container, so forward the port on your router if you need incoming connections.
 - **Versions:** the compose file pulls the latest stable release. To pin a version, set `SWARM_VERSION` (for example `SWARM_VERSION=0.9.1`) and run `docker compose pull && docker compose up -d` to update. Each release also has a `docker-compose.yml` already pinned to its version. Per-platform tags such as `0.9.1-amd64` exist too.
 - **Other options** (set in your shell or a `.env` file): `SWARM_WEB_PORT` (default 8080), `SWARM_PEER_PORT` (default 51413), `SWARM_DATA_DIR`, `SWARM_DOWNLOADS_DIR`, `SWARM_DEMO`, `SWARM_ALLOW_COMMANDS`, `SWARM_UPDATE_FEED`, `LOG_LEVEL`. Commands run by hooks would run inside the server container.
@@ -191,6 +217,7 @@ The server reads these environment variables:
 | `SWARM_DEMO` | off | `1` switches to the simulated engine with sample data |
 | `SWARM_ALLOW_COMMANDS` | off | `1` lets command hooks run on this machine |
 | `SWARM_UPDATE_FEED` | none | URL of a release feed for the update check |
+| `SWARM_SECRET_<NAME>` | none | A secret for API hooks. Write `{{secret.NAME}}` in a hook to use it. `SWARM_SECRET_<NAME>_FILE` reads it from a file instead. |
 | `LOG_LEVEL`, `LOG_FORMAT` | | Logging |
 
 Everything else (save paths, limits, queueing, Web UI login) is in the Settings page.
@@ -229,6 +256,17 @@ UI changes also need a check in a real browser, in light and dark themes, at des
 ## Security
 
 Bitswarm can run commands and call URLs through hooks, so treat access to it like shell access to the host. Change the default password, keep the port on localhost or behind HTTPS, and leave command hooks off unless you need them.
+
+How secrets are handled:
+
+- **Web password:** stored only as a PBKDF2-SHA256 hash with a random salt.
+- **API tokens:** shown once when you create them. Only a SHA-256 hash and the last 4 characters are kept.
+- **API keys for hooks:** use `{{secret.NAME}}` so the key lives in the server's environment and never in the database. A key typed into a header such as `Authorization` or `X-Api-Key` is hidden in the editor, the API and the delivery history after you save, but it is stored as plain text in the database file.
+- **Hook signing secrets:** stored, because Bitswarm needs them to sign, but never sent back to the browser.
+- **The database file:** readable by its owner only (`0600`).
+- **Backups:** secrets are left out unless you tick "include secrets". Real keys in secret-looking headers (`Authorization`, `X-Api-Key`, `Cookie` and similar) are blanked, and `{{secret.NAME}}` references are kept.
+- **Errors and logs:** addresses are shown without their query string, so a key in `?apikey=…` doesn't end up in the log.
+- **Not covered:** a key placed in a URL, a body or a custom-named header is not recognized as secret. Put it in `{{secret.NAME}}`.
 
 To report a vulnerability, open a private security advisory on the GitHub repository. Please don't post it in a public issue.
 
