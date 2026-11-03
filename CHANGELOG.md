@@ -2,6 +2,14 @@
 
 All notable changes to Bitswarm are listed here, newest first. The format follows [Keep a Changelog](https://keepachangelog.com), and versions follow [Semantic Versioning](https://semver.org). The version comes from the git tag.
 
+## [Unreleased]
+
+### Changed
+- The Run curl editor's help text explains where placeholders may go. The README screenshots show the three hook types.
+
+### Removed
+- Paste curl in the hook editor and `POST /api/hooks/parse-curl`. Hooks that were created with it are normal API hooks and keep working. To use a curl command from a service's docs, enter its method, URL, headers and body in **Call an API**, or use **Run curl**.
+
 ## [1.0.0] - 2026-11-03
 
 ### Added
