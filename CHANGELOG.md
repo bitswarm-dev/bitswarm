@@ -2,7 +2,10 @@
 
 All notable changes to Bitswarm are listed here, newest first. The format follows [Keep a Changelog](https://keepachangelog.com), and versions follow [Semantic Versioning](https://semver.org). The version comes from the git tag.
 
-## [Unreleased]
+## [1.0.1] - 2026-11-03
+
+### Added
+- Recipes: copy-paste hooks that keep their keys in `{{secret.NAME}}` for Cloudflare Email, Resend, Discord, Slack, Telegram, ntfy, Pushover and Gotify ([`docs/hook-recipes.md`](docs/hook-recipes.md)), and settings for scheduled downloads and a rename preset ([`docs/schedule-recipes.md`](docs/schedule-recipes.md)), with screenshots. Pull requests: [#15](https://github.com/bitswarm-dev/bitswarm/pull/15), [#16](https://github.com/bitswarm-dev/bitswarm/pull/16).
 
 ### Changed
 - The Run curl editor's help text explains where placeholders may go. The README screenshots show the three hook types.
@@ -52,6 +55,7 @@ Pull requests: [#1](https://github.com/bitswarm-dev/bitswarm/pull/1), [#2](https
 
 First release: a standalone BitTorrent client with a web interface, a built-in engine, scheduled downloads, rename presets, maintenance, hooks, API tokens, backups and an Execution log.
 
+[1.0.1]: https://github.com/bitswarm-dev/bitswarm/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/bitswarm-dev/bitswarm/compare/v0.9.1...v1.0.0
 [0.9.1]: https://github.com/bitswarm-dev/bitswarm/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/bitswarm-dev/bitswarm/releases/tag/v0.9.0
