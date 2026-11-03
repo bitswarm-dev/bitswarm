@@ -1,6 +1,9 @@
 package hooks
 
-import "regexp"
+import (
+	"regexp"
+	"strings"
+)
 
 var curlFormRe = regexp.MustCompile(`(^|\s)(-[A-Za-z]*F|--form)(\s|=|$)`)
 
@@ -17,14 +20,22 @@ func curlProblem(tpl string) string {
 		starts[l[0]] = l
 	}
 	var quote byte
-	hasText := false
+	var word strings.Builder
+	prev := ""
+	endWord := func() {
+		if word.Len() > 0 {
+			prev = word.String()
+			word.Reset()
+		}
+	}
 	for i := 0; i < len(tpl); i++ {
 		if l, ok := starts[i]; ok {
 			name := tpl[l[2]:l[3]]
-			if !hasText && name != "payload" {
-				return "in a curl hook, put {{" + name + "}} after a name and an equals sign, such as name={{" + name + "}}. On its own, curl can read it as a file or an option."
+			if name != "payload" && !curlSafeSpot(word.String(), prev) {
+				return "in a curl hook, put {{" + name + "}} right after an equals sign, such as name={{" + name + "}}, or inside a URL or a -H header value. Anywhere else, curl can read part of the value as a file or an option."
 			}
-			i, hasText = l[1]-1, true
+			word.WriteString("X")
+			i = l[1] - 1
 			continue
 		}
 		c := tpl[i]
@@ -33,21 +44,35 @@ func curlProblem(tpl string) string {
 			if c == quote {
 				quote = 0
 			} else {
-				hasText = true
+				word.WriteByte(c)
 			}
 		case c == '\'' || c == '"':
 			quote = c
 		case c == '\\' && i+1 < len(tpl) && tpl[i+1] == '\n':
 			i++
-			hasText = false
+			endWord()
 		case c == '\\':
 			i++
-			hasText = true
+			if i < len(tpl) {
+				word.WriteByte(tpl[i])
+			}
 		case c == ' ' || c == '\t' || c == '\n' || c == '\r':
-			hasText = false
+			endWord()
 		default:
-			hasText = true
+			word.WriteByte(c)
 		}
 	}
 	return ""
+}
+
+func curlSafeSpot(word, prev string) bool {
+	switch {
+	case strings.HasSuffix(word, "="):
+		return true
+	case strings.HasPrefix(word, "http://") || strings.HasPrefix(word, "https://"):
+		return true
+	case word != "" && (prev == "-H" || prev == "--header"):
+		return true
+	}
+	return false
 }
