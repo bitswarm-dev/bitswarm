@@ -114,6 +114,7 @@ Notes:
 - Press **Send test** to send a sample event first. The preview under the form shows the request before anything leaves your machine.
 - Use an API key that can only send email, and rotate it if it ever leaks.
 - Replace `from` with an address your email service has verified. To send through a different service, change the URL, the headers and the body to match its API.
+- More copy-paste hooks that keep their keys in `{{secret.NAME}}`, for Cloudflare Email, Discord, Slack, Telegram, ntfy, Pushover and Gotify, are in [Hook recipes](docs/hook-recipes.md).
 
 #### Keep keys out of the database
 
