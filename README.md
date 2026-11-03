@@ -157,4 +157,8 @@ To report a vulnerability, open a private security advisory on the GitHub reposi
 
 ## License
 
-No license has been chosen yet, so all rights are reserved until one is added.
+Bitswarm is licensed under the [PolyForm Noncommercial License 1.0.0](./LICENSE). You can use it, change it and share it for free for any noncommercial purpose: personal use, hobby projects, research and study, and use by charities, schools and public institutions. You can't sell it or use it for commercial purposes, including running it inside a for-profit business.
+
+This is a source-available license, not an OSI-approved open source license, because it limits commercial use. If you want to use Bitswarm commercially, open an issue to ask.
+
+Third-party libraries keep their own licenses. The BitTorrent engine library is under MPL-2.0.

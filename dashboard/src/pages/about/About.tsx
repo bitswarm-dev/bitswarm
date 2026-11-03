@@ -130,10 +130,14 @@ export function About() {
         </fieldset>
         <fieldset className="sgroup">
           <legend>Bitswarm</legend>
-          <p style={{ margin: 0, maxWidth: "60ch" }}>A BitTorrent client with a web interface, with scheduled downloads, regex rename presets and tags.</p>
+          <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+            <img src="/logo.svg" alt="" width={48} height={48} style={{ borderRadius: 11, flex: "none" }} />
+            <p style={{ margin: 0, maxWidth: "60ch" }}>A BitTorrent client with a web interface, with scheduled downloads, regex rename presets and tags.</p>
+          </div>
           <dl className="meta" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(250px,1fr))" }}>
             <div><dt>Version</dt><dd className="num">{VERSION}</dd></div>
-            <div><dt>Source code</dt><dd><a href="https://github.com/keithics/bitswarm" target="_blank" rel="noopener noreferrer">github.com/keithics/bitswarm</a></dd></div>
+            <div><dt>Source code</dt><dd><a href="https://github.com/bitswarm-dev/bitswarm" target="_blank" rel="noopener noreferrer">bitswarm-dev/bitswarm</a></dd></div>
+            <div><dt>License</dt><dd><a href="https://github.com/bitswarm-dev/bitswarm/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">PolyForm Noncommercial</a></dd></div>
             <div><dt>Engine</dt><dd>{stats.real ? `${stats.engine}, built into the server` : "Simulated, built into the server"}</dd></div>
             <div><dt>Web UI port</dt><dd className="num">{set.webPort}{set.webHttps ? " (HTTPS)" : ""}</dd></div>
             <div><dt>Listening port</dt><dd className="num">{set.port}</dd></div>
