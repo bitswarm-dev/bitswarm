@@ -14,7 +14,7 @@ The engine is **real and built in**: `server/internal/engine` wraps `github.com/
 
 | | |
 |---|---|
-| Dashboard | `dashboard/`: Vite, React 18, TypeScript, React Router, TanStack Query v5 |
+| Dashboard | `dashboard/`: Vite, React 18, TypeScript, TanStack Router (file-based), TanStack Query v5 |
 | Server | `server/`: Go, Fiber, SQLite (`modernc.org/sqlite`), module `bitswarm/server` |
 | Run everything | `./run.sh`, then open http://localhost:5173 (server on :8080, Vite proxies `/api`). A fresh database is empty and downloads for real into `server/downloads` (or `SWARM_DOWNLOADS`). `./run.sh --demo` (or `SWARM_DEMO=1`) switches to the **simulated** engine and adds 10 sample torrents. |
 | Docker (preferred for users) | `docker compose up -d` pulls `dockerkeithics/bitswarm-server` and `bitswarm-web` (`SWARM_VERSION` pins a version, default `latest`). `docker-compose.build.yml` builds them from source. |
@@ -97,7 +97,9 @@ server/                 Go service (see server/CLAUDE.md)
     torrents/           model, Engine interface, simulation (demo), real-engine sync (real.go), add flow, batch actions, API
     engine/             the real BitTorrent engine: anacrolix/torrent client, storage layout, rename/move on disk
 dashboard/
-  src/app/              main.tsx, App.tsx (routes), Layout.tsx, theme.tsx, ui.tsx (UI-only context), storage.ts
+  src/routes/           one file per route (TanStack Router file-based routing). routeTree.gen.ts is generated and committed
+  src/router.ts         the router: preloading, pending and error defaults, typed Register
+  src/app/              main.tsx, Layout.tsx, queryClient.ts, loaders.ts, listView.ts (URL state), theme.tsx, ui.tsx (UI-only context), storage.ts
   src/components/       Sidebar, StatusBar, Toasts, Modal, Menu, Charts, Icons, Theme, PageQuery, PageSkeleton
   src/features/<name>/  types.ts, api.ts, queries.ts, mutations.ts (+ filters.ts, sections.ts where needed)
   src/pages/<name>/     route pages and their dialogs
@@ -108,9 +110,13 @@ dashboard/
 ### Dashboard conventions
 
 - **Server state is TanStack Query only.** Queries use `useSuspenseQuery`. Mutations invalidate the keys they affect.
-- **Suspense at the route.** Every route page is wrapped in `<Suspense>` in `app/App.tsx` with a skeleton that matches the page. Pages never check `isLoading`.
+- **Routes are files.** Add a page by adding `src/routes/<name>.tsx` with `createFileRoute`. The plugin regenerates `routeTree.gen.ts` (run `npx vite build` or the dev server) and splits each route's component into its own chunk, so import the page component directly in the route file. Commit the generated file, because CI type-checks before it builds.
+- **Loaders prefetch with Query.** Every route has a `loader` that calls `prefetch(...)` from `app/loaders.ts` with the `queryOptions` of the data the page reads. Each `features/<name>/queries.ts` exports those as `fooQuery`, and the hook uses the same object, so a prefetched page never fetches twice. The root route prefetches the sidebar's data in parallel. Loaders do nothing when signed out (`context.signedIn`).
+- **Pending and error UI belong to the router.** `router.ts` sets `defaultPendingComponent` (a skeleton, shown after 200 ms), `defaultErrorComponent` and `defaultNotFoundComponent`. A route overrides them with `pendingComponent`. Pages never check `isLoading` and don't add their own `<Suspense>` around the page.
+- **Links are typed.** Navigate with `<Link>` (with `search` or `params`) or `useNavigate()`, never a hand-written path string or `window.location`. Sidebar entries are real links, so intent preloading, middle-click and open in a new tab work. Use `activeOptions={{ exact: true }}` on links that carry search params.
+- **Shareable UI state lives in the URL.** The torrent list's status and tag filters, search, sort, selected torrent and inspector tab are search params on `/` (`app/listView.ts` validates them, leaves defaults out and exposes `useListView()`). The settings section is a path (`/settings/$section`, validated by `params.parse`). The Execution log filters are search params (`pages/log/logSearch.ts`). Validate every search param in the route's `validateSearch`, so junk in the URL is ignored. Debounce text inputs with `useUrlText` and update the URL with `replace: true` so typing does not flood the history. Keep only transient state out of the URL: row checkboxes, dialogs and open menus.
 - **`PageQuery`** renders query results and empty states. Pages pass the query and render only the success UI.
-- **React Context is UI state only**: theme, toasts, sidebar collapse, list filter/sort/selection. No server data in Context.
+- **React Context is UI state only**: theme, toasts, sidebar collapse, row selection. No server data in Context, and nothing that belongs in the URL.
 - **Check `src/utils/` before writing an inline `typeof` or `Array.isArray` guard.** Add a helper there if a pattern repeats.
 - **Focus-sensitive controls** (selects, inputs) are fine in React lists because rows keep their keys. Keep keys stable.
 - Polling: torrents and stats refetch every second, the catalog every five, the log every two.

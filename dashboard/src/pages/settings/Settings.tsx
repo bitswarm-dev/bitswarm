@@ -6,7 +6,7 @@ import { getDefaults } from "@/features/settings/api";
 import { useSaveSettings } from "@/features/settings/mutations";
 import { useSettings } from "@/features/settings/queries";
 import { useStats } from "@/features/torrents/queries";
-import { SECTIONS, depOff, sectionOf, type FieldDef } from "@/features/settings/sections";
+import { SECTIONS, depOff, sectionOf, type FieldDef, type SectionId } from "@/features/settings/sections";
 import type { Settings as SettingsData } from "@/features/settings/types";
 import { BackupSection } from "./BackupSection";
 import { ApiError } from "@/lib/http";
@@ -30,10 +30,9 @@ export function Settings() {
   const ui = useUi();
   const [draft, setDraft] = useState<SettingsData>(saved);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const params = useParams({ strict: false }) as { section?: string };
+  const { section } = useParams({ from: "/settings/$section" });
   const navigate = useNavigate();
-  const section = SECTIONS.some((s) => s.id === params.section) ? (params.section as string) : "downloads";
-  const setSection = (id: string, replace = false) => void navigate({ to: "/settings/$section", params: { section: id }, replace });
+  const setSection = (id: SectionId, replace = false) => void navigate({ to: "/settings/$section", params: { section: id }, replace });
   const base = useRef(saved);
 
   useEffect(() => {

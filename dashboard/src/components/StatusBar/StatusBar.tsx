@@ -1,5 +1,5 @@
 import { useSettings } from "@/features/settings/queries";
-import { useNav } from "@/app/nav";
+import { Link } from "@tanstack/react-router";
 import { useUpdates } from "@/features/updates/queries";
 import { useSchedules } from "@/features/schedules/queries";
 import { useStats } from "@/features/torrents/queries";
@@ -10,13 +10,12 @@ export function StatusBar() {
   const { data: set } = useSettings();
   const { data: rules } = useSchedules();
   const { data: upd } = useUpdates();
-  const nav = useNav();
   const next = rules.filter((r) => r.enabled).sort((a, b) => a.nextRun - b.nextRun)[0];
 
   return (
     <footer className="status">
       {upd.state === "available" && upd.latest && (
-        <button className="linkbtn" onClick={() => nav("/about")}>Update available: {upd.latest.version}</button>
+        <Link to="/about" className="linkbtn">Update available: {upd.latest.version}</Link>
       )}
       {stats.real ? (
         <span className="live">Listening on port {stats.port}</span>

@@ -23,8 +23,15 @@ export interface GroupDef {
   fields: FieldDef[];
 }
 
+export const SECTION_IDS = ["downloads", "connection", "speed", "bittorrent", "webui", "backup"] as const;
+export type SectionId = (typeof SECTION_IDS)[number];
+
+export function isSectionId(v: string): v is SectionId {
+  return (SECTION_IDS as readonly string[]).includes(v);
+}
+
 export interface SectionDef {
-  id: string;
+  id: SectionId;
   title: string;
   groups?: GroupDef[];
 }
@@ -197,7 +204,7 @@ export const SECTIONS: SectionDef[] = [
   { id: "backup", title: "Backup" },
 ];
 
-export function sectionOf(key: string): string | undefined {
+export function sectionOf(key: string): SectionId | undefined {
   return SECTIONS.find((s) => s.groups?.some((g) => g.fields.some((x) => x.key === key)))?.id;
 }
 
