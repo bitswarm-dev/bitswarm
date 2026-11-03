@@ -6,15 +6,19 @@
 [![Docker pulls](https://img.shields.io/docker/pulls/dockerkeithics/bitswarm-server?label=docker%20pulls)](https://hub.docker.com/r/dockerkeithics/bitswarm-server)
 [![Platforms](https://img.shields.io/badge/platforms-amd64%20%7C%20arm64%20%7C%20arm%2Fv7%20%7C%20386-blue)](https://hub.docker.com/r/dockerkeithics/bitswarm-server/tags)
 
-A standalone BitTorrent client with a web interface. Bitswarm downloads and seeds by itself using a built-in engine, so you don't need qBittorrent, Transmission or any other client.
+Bitswarm is a programmable BitTorrent client with a web interface. Most clients stop once the download finishes: finding new releases, fixing messy file names, sorting files into folders and telling you when something is done are left to you, or to a pile of scripts. Bitswarm makes those steps part of the client.
 
-On top of the usual torrent list it adds automation: scheduled searches of websites, regex rename presets, maintenance tasks, hooks that call an API or run a command, an execution log, API tokens and settings backup.
+- **Schedule it:** search websites on a timer and add what's new.
+- **Organize it:** rename files with regex rules and move them into folders, so your library stays tidy on its own.
+- **Hook it up:** call an API or run a command at every step, from added to finished to failed. Send an email, ping a chat, refresh your media server.
+- **Script it:** use API tokens to control Bitswarm from your own code.
 
 > Bitswarm is a general-purpose BitTorrent client. It isn't built for piracy, and it doesn't provide, host or index content. Only download and share what you have the right to. You are responsible for following your local laws. This is not legal advice, and the authors aren't liable for how you use it.
 
 ## Contents
 
 - [Screenshots](#screenshots)
+- [Automation](#automation)
 - [Features](#features)
 - [Install](#install)
 - [Configuration](#configuration)
@@ -31,7 +35,81 @@ Captured in demo mode, which uses a simulated engine with sample torrents.
 |---|---|
 | <img src="docs/screenshots/desktop-dark.png" alt="Bitswarm torrent list in the dark theme"> | <img src="docs/screenshots/desktop-light.png" alt="Bitswarm torrent list in the light theme"> |
 
+## Automation
+
+### Scheduled downloads
+
+A schedule searches a website on a timer, reads the magnet or `.torrent` links out of the results with a CSS selector, filters them by name, and adds anything new. It can tag what it adds, apply a rename preset and use your default save folder.
+
 <img src="docs/screenshots/scheduled-dark.png" alt="Bitswarm scheduled downloads page in the dark theme">
+
+### Auto rename
+
+A preset finds part of a name with a regular expression and replaces it. It can run on every finished download that matches a tag, from a schedule, or by hand with a live preview and undo. For files, a `/` in the replacement moves the file into that folder, which is created if it's missing. Regular expressions use Go syntax.
+
+<img src="docs/screenshots/auto-rename.png" alt="Bitswarm auto rename page with three presets">
+
+### Hooks
+
+A hook runs when something happens in Bitswarm. Pick the events, pick what to do, and use placeholders such as `{{torrent.name}}`, `{{torrent.path}}` and `{{torrent.size}}` to pass details along.
+
+- **Events:** torrent added, metadata received, resumed, paused, download finished, error, removed, renamed, tags changed and files moved. Also schedule search, links found and run finished, and maintenance task ran, settings saved and update available. A hook can be limited to one tag.
+- **Call an API:** send a request to any URL, with your own method, headers and body. Requests are retried when the other side fails. With a signing secret they carry an `X-Swarm-Signature` header, an HMAC-SHA256 of the body, so the receiver can check where they came from.
+- **Run a command:** run a script on the machine where Bitswarm runs. It gets the event as environment variables and, if you want, as JSON on its standard input. Placeholder values are quoted for the shell automatically, so a torrent named `x'; rm -rf ~ #` arrives as one plain argument. Command hooks are off until you start the server with `SWARM_ALLOW_COMMANDS=1`, and in Docker they run inside the server container.
+- **Test before you trust it:** every hook has a Send test button and a preview of the exact request. Recent deliveries are listed on the Hooks page, with their status, so you can see what was sent, or "Not sent" and "Not run" when it wasn't.
+
+**Call an API.** The editor for the email example below, with the request preview at the bottom:
+
+<img src="docs/screenshots/hooks-api-email.png" alt="Editing an API hook that sends an email when a download finishes, with a preview of the request">
+
+**Run a command.** The same editor for a script that runs when a download finishes:
+
+<img src="docs/screenshots/hooks-cmd.png" alt="Editing a command hook that runs a script when a download finishes">
+
+Command hooks can do anything the server user can do, and API hooks send data off your machine. Use hooks at your own risk, and read the warning on the Hooks page.
+
+#### Example: email when a download starts and finishes
+
+Use any email service that sends mail from a JSON request. This example uses the Resend API. Create two API hooks with **Hooks → New hook → Call an API**. Both use method `POST`, the URL `https://api.resend.com/emails` and these headers:
+
+```text
+Content-Type: application/json
+Authorization: Bearer YOUR_API_KEY
+```
+
+**Email: download started.** Tick the event **Added**, and use this body:
+
+```json
+{
+  "from": "Bitswarm <bitswarm@yourdomain.com>",
+  "to": ["you@example.com"],
+  "subject": "Started: {{torrent.name}}",
+  "text": "Bitswarm started {{torrent.name}} ({{torrent.size}}). It will be saved to {{torrent.path}}."
+}
+```
+
+**Email: download finished.** Tick the event **Download finished**, and use this body:
+
+```json
+{
+  "from": "Bitswarm <bitswarm@yourdomain.com>",
+  "to": ["you@example.com"],
+  "subject": "Finished: {{torrent.name}}",
+  "text": "{{torrent.name}} ({{torrent.size}}) finished downloading and is in {{torrent.path}}. Share ratio {{torrent.ratio}}."
+}
+```
+
+Notes:
+
+- Placeholder values are escaped for JSON automatically, so a torrent name with quotes can't break the request.
+- For a magnet link, the name and size may not be known when the torrent is added. Tick **Metadata received** instead of **Added** to send the email once they are.
+- Press **Send test** to send a sample event first. The preview under the form shows the request before anything leaves your machine.
+- The API key is saved with the hook, in the header text. Use a key that can only send email, and treat the `data` folder and settings backups as sensitive.
+- Replace `from` with an address your email service has verified. To send through a different service, change the URL, the headers and the body to match its API.
+
+### API tokens
+
+Create Bearer tokens with read, control or admin access on the **API tokens** page, and use them against `/api/v1` from your own scripts.
 
 ## Features
 
