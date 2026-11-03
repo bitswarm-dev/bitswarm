@@ -43,6 +43,8 @@ A schedule searches a website on a timer, reads the magnet or `.torrent` links o
 
 <img src="docs/screenshots/scheduled-dark.png" alt="Bitswarm scheduled downloads page in the dark theme">
 
+Copy-paste settings for a distribution's download page, a search with a list of titles and a rename preset are in [Scheduled download recipes](docs/schedule-recipes.md).
+
 ### Auto rename
 
 A preset finds part of a name with a regular expression and replaces it. It can run on every finished download that matches a tag, from a schedule, or by hand with a live preview and undo. For files, a `/` in the replacement moves the file into that folder, which is created if it's missing. Regular expressions use Go syntax.
