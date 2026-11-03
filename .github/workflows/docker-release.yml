@@ -123,7 +123,7 @@ jobs:
             rm -rf "build/$name"
             mkdir -p "build/$name"
             (cd server && CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" GOARM="$arm" go build -trimpath -ldflags="-s -w" -o "../build/$name/$bin" ./cmd/server)
-            cp README.md "build/$name/"
+            cp README.md LICENSE THIRD_PARTY_NOTICES.md "build/$name/"
             if [ "$os" = "windows" ]; then
               (cd build && zip -qr "$out/$name.zip" "$name")
             else

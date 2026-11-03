@@ -134,7 +134,6 @@ Issues and pull requests are welcome. For anything bigger than a small fix, open
 ```
 run.sh              starts the server and the dashboard
 docker-compose.yml  runs the published images (docker-compose.build.yml builds them from source)
-draft.html          the original single-file prototype (visual reference)
 CLAUDE.md           rules for people and AI agents working on the code
 server/             Go service: Fiber, SQLite, built-in BitTorrent engine
 dashboard/          React 18, TypeScript, Vite, TanStack Query
@@ -161,4 +160,4 @@ Bitswarm is licensed under the [PolyForm Noncommercial License 1.0.0](./LICENSE)
 
 This is a source-available license, not an OSI-approved open source license, because it limits commercial use. If you want to use Bitswarm commercially, open an issue to ask.
 
-Third-party libraries keep their own licenses. The BitTorrent engine library is under MPL-2.0.
+Third-party libraries keep their own licenses. They are listed in [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md), which also ships in the release downloads.
