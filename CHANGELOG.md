@@ -22,15 +22,15 @@ All notable changes to Bitswarm are listed here, newest first. The format follow
 
 ### Security
 - Fixed all `npm audit` findings, including an open-redirect XSS in the shipped router.
-- Curl hooks only save when every placeholder follows a name and an equals sign (`name={{x}}`) or is `{{payload}}`, and `-F`/`--form` are refused. Values starting with `-`, `@` or `<` get a leading space. A torrent name can't make curl read a file or take an option.
-- Database folder is `0700` and the file `0600`, tightened at startup.
+- Curl hooks only save when every placeholder comes right after an equals sign (`name={{x}}`), sits in a URL or a `-H` value, or is `{{payload}}`, and `-F`/`--form` are refused ([#11](https://github.com/bitswarm-dev/bitswarm/pull/11), [#13](https://github.com/bitswarm-dev/bitswarm/pull/13), [#14](https://github.com/bitswarm-dev/bitswarm/pull/14)). Values starting with `-`, `@` or `<` get a leading space. A torrent name can't make curl read a file or take an option.
+- Database folder is `0700` and the file `0600`, tightened at startup. A host user other than the container user can no longer read `data/swarm.db` directly ([#7](https://github.com/bitswarm-dev/bitswarm/pull/7)).
 - Query strings are removed from hook, schedule and update-feed errors.
 
 ### Fixed
 - Command hooks that time out on Linux now stop the whole process group.
 - The Execution log no longer re-renders in a loop.
 
-Pull requests: [#1](https://github.com/bitswarm-dev/bitswarm/pull/1), [#2](https://github.com/bitswarm-dev/bitswarm/pull/2), [#3](https://github.com/bitswarm-dev/bitswarm/pull/3), [#4](https://github.com/bitswarm-dev/bitswarm/pull/4), [#5](https://github.com/bitswarm-dev/bitswarm/pull/5), [#6](https://github.com/bitswarm-dev/bitswarm/pull/6), [#7](https://github.com/bitswarm-dev/bitswarm/pull/7), [#8](https://github.com/bitswarm-dev/bitswarm/pull/8), [#9](https://github.com/bitswarm-dev/bitswarm/pull/9), [#10](https://github.com/bitswarm-dev/bitswarm/pull/10), [#11](https://github.com/bitswarm-dev/bitswarm/pull/11), [#13](https://github.com/bitswarm-dev/bitswarm/pull/13).
+Pull requests: [#1](https://github.com/bitswarm-dev/bitswarm/pull/1), [#2](https://github.com/bitswarm-dev/bitswarm/pull/2), [#3](https://github.com/bitswarm-dev/bitswarm/pull/3), [#4](https://github.com/bitswarm-dev/bitswarm/pull/4), [#5](https://github.com/bitswarm-dev/bitswarm/pull/5), [#6](https://github.com/bitswarm-dev/bitswarm/pull/6), [#7](https://github.com/bitswarm-dev/bitswarm/pull/7), [#8](https://github.com/bitswarm-dev/bitswarm/pull/8), [#9](https://github.com/bitswarm-dev/bitswarm/pull/9), [#10](https://github.com/bitswarm-dev/bitswarm/pull/10), [#11](https://github.com/bitswarm-dev/bitswarm/pull/11), [#13](https://github.com/bitswarm-dev/bitswarm/pull/13), [#14](https://github.com/bitswarm-dev/bitswarm/pull/14).
 
 ## [0.9.1] - 2026-11-03
 
