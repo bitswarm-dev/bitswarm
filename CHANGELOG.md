@@ -16,11 +16,13 @@ All notable changes to Bitswarm are listed here, newest first. The format follow
 - Replaced `react-router` with TanStack Router (file-based routes, data loaders, preloading and code splitting).
 - The README leads with automation and hooks.
 - Stored header keys such as `Authorization` are masked after saving.
-- Base images: golang 1.27, alpine 3.24, nginx 1.31, node 26.
+- Base images: golang 1.27, alpine 3.24, nginx 1.31, node 26. Build tools: Vite 6 and @vitejs/plugin-react 4.7.
+- Third-party notices list the new dependencies and licenses.
+- The hook editor no longer lists `SWARM_TORRENT_LABEL`, which was removed with labels.
 
 ### Security
 - Fixed all `npm audit` findings, including an open-redirect XSS in the shipped router.
-- Curl hooks neutralize placeholder values starting with `-`, `@` or `<`, so a torrent name can't make curl read a file or take an option.
+- Curl hooks only save when every placeholder follows a name and an equals sign (`name={{x}}`) or is `{{payload}}`, and `-F`/`--form` are refused. Values starting with `-`, `@` or `<` get a leading space. A torrent name can't make curl read a file or take an option.
 - Database folder is `0700` and the file `0600`, tightened at startup.
 - Query strings are removed from hook, schedule and update-feed errors.
 
